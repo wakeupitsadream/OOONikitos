@@ -180,10 +180,15 @@
     line-height: 1.04;
     letter-spacing: -0.02em;
     text-wrap: balance;
+    /* Длинные русские слова («Роспотребнадзора») в крупном кегле
+       не влезают в узкую колонку — переносим по слогам. */
+    hyphens: auto;
+    overflow-wrap: break-word;
   }
 
-  p {
+  p, li, dd, dt, summary {
     text-wrap: pretty;
+    overflow-wrap: break-word;
   }
 
   ::selection {
