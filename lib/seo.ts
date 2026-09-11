@@ -40,6 +40,11 @@ export function pageMetadata({
     metadataBase: new URL(origin),
     title,
     description,
+    // Иконка своя у каждого бренда: один проект отдаёт три сайта
+    icons: {
+      icon: [{ url: `/brands/${site}/favicon.svg`, type: 'image/svg+xml' }],
+      shortcut: `/brands/${site}/favicon.svg`,
+    },
     alternates: { canonical: url },
     robots: noindex ? { index: false, follow: false } : robotsMeta(),
     openGraph: {

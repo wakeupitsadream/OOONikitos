@@ -8,7 +8,7 @@ type BadgeProps = {
 };
 
 const VARIANT: Record<NonNullable<BadgeProps['variant']>, string> = {
-  plate: 'bg-[var(--color-red)] text-white',
+  plate: 'bg-[var(--color-red-deep)] text-white',
   accent: 'bg-accent text-accent-fg',
   quiet: 'bg-surface-2 text-fg-muted border border-border',
   draft: 'bg-transparent text-fg-subtle border border-dashed border-border-strong',

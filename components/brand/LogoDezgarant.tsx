@@ -130,7 +130,7 @@ function Slogan() {
       {SLOGAN_PARTS.map((part, index) => (
         <Fragment key={part}>
           {index > 0 ? (
-            <span aria-hidden="true" className="mx-[0.5em] text-red">
+            <span aria-hidden="true" className="mx-[0.5em] text-[var(--brand-dot)]">
               •
             </span>
           ) : null}

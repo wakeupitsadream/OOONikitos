@@ -30,7 +30,7 @@ export function CopyNumber({ value }: { value: string }) {
         aria-label={copied ? 'Номер скопирован' : 'Скопировать номер лицензии'}
       >
         {copied ? (
-          <Check className="size-3.5 text-[var(--color-ok)]" aria-hidden="true" />
+          <Check className="size-3.5 text-[var(--ok)]" aria-hidden="true" />
         ) : (
           <Copy className="size-3.5" aria-hidden="true" />
         )}

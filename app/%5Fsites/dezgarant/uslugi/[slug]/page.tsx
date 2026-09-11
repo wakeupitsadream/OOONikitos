@@ -121,7 +121,7 @@ export default async function ServicePage({ params }: PageProps) {
                   className="flex items-start gap-3 rounded-[var(--radius-sm)] border border-border bg-surface px-4 py-3"
                 >
                   <AlertTriangle
-                    className="mt-0.5 size-5 shrink-0 text-[var(--color-warn)]"
+                    className="mt-0.5 size-5 shrink-0 text-[var(--warn)]"
                     aria-hidden="true"
                   />
                   <span className="text-[0.9375rem]">{symptom}</span>

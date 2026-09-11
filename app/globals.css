@@ -10,7 +10,8 @@
   --color-red-deep: #d41728;
   --color-red-soft: #ff4b53;
   --color-teal: #05b0ae;
-  --color-teal-ink: #0b8a87;
+  --color-teal-ink: #0a7370;
+  --color-teal-deep: #0a7d7a;
   --color-teal-soft: #3fc9c7;
   --color-gold: #d9a24a;
   --color-gold-bright: #f2c766;
@@ -35,10 +36,14 @@
   --color-grey-800: #343d40;
   --color-grey-900: #2a3236;
 
-  /* Светофор состояний — отдельно от фирменной палитры */
-  --color-ok: #2e9e5b;
-  --color-warn: #e08a16;
-  --color-danger: #d4342a;
+  /* Светофор состояний — отдельно от фирменной палитры.
+     Пара значений на каждое: тёмный фон требует более светлых. */
+  --color-ok: #1f7a44;
+  --color-ok-light: #43c97c;
+  --color-warn: #9a5c06;
+  --color-warn-light: #f0a93a;
+  --color-danger: #c2261d;
+  --color-danger-light: #ff6b60;
 
   /* Шрифты (переменные задаёт next/font) */
   --font-display: var(--font-montserrat), "Montserrat", system-ui, sans-serif;
@@ -72,8 +77,9 @@
   --surface: #ffffff;
   --surface-2: var(--color-grey-100);
   --fg: var(--color-ink);
-  --fg-muted: var(--color-grey-600);
-  --fg-subtle: var(--color-grey-500);
+  /* Оттенки подобраны под контраст 4.5:1 на бумажном фоне */
+  --fg-muted: #4a565a;
+  --fg-subtle: var(--color-grey-600);
   --border: var(--color-grey-200);
   --border-strong: var(--color-grey-300);
   --accent: var(--color-teal);
@@ -82,6 +88,10 @@
   --shadow: var(--shadow-card);
   --noise-blend: multiply;
   --noise-opacity: 0.22;
+  --ok: var(--color-ok);
+  --warn: var(--color-warn);
+  --danger: var(--color-danger);
+  --brand-dot: var(--color-red-deep);
 }
 
 [data-theme="dark"] {
@@ -100,16 +110,27 @@
   --shadow: var(--shadow-card-dark);
   --noise-blend: overlay;
   --noise-opacity: 0.3;
+  --ok: var(--color-ok-light);
+  --warn: var(--color-warn-light);
+  --danger: var(--color-danger-light);
+  /* На чёрном глубокий красный тускнеет — берём осветлённый */
+  --brand-dot: var(--color-red-soft);
+  /* Третичный текст на тёмном фоне поднимаем до нормы для мелкого кегля */
+  --fg-subtle: #8d989b;
 }
 
 [data-accent="teal"] {
-  --accent: var(--color-teal);
+  /* Яркая бирюза остаётся в знаке и декоре; кнопки красим глубокой,
+     иначе белый текст на заливке даёт 2,7:1 вместо 4,5:1 */
+  --accent: var(--color-teal-deep);
   --accent-ink: var(--color-teal-ink);
   --accent-fg: #ffffff;
 }
 
 [data-accent="red"] {
-  --accent: var(--color-red);
+  /* Ярко-красный остаётся в знаке; заливка кнопок — глубокий красный,
+     иначе белая надпись даёт 4,25:1 вместо 4,5:1 */
+  --accent: var(--color-red-deep);
   --accent-ink: var(--color-red-deep);
   --accent-fg: #ffffff;
 }
@@ -120,7 +141,14 @@
   --accent-fg: #14110b;
 }
 
+[data-theme="dark"][data-accent="red"] {
+  /* Фирменный красный на чёрном даёт 3,4:1 — для мелкого текста мало */
+  --accent-ink: var(--color-red-soft);
+}
+
 [data-theme="dark"][data-accent="teal"] {
+  /* На тёмном фоне бирюза может быть яркой — читается и так */
+  --accent: var(--color-teal);
   --accent-ink: var(--color-teal-soft);
 }
 
@@ -130,6 +158,10 @@
 
 /* Токены как утилиты Tailwind: bg-surface, text-fg-muted, border-border */
 @theme inline {
+  --color-brand-dot: var(--brand-dot);
+  --color-ok-token: var(--ok);
+  --color-warn-token: var(--warn);
+  --color-danger-token: var(--danger);
   --color-bg: var(--bg);
   --color-bg-deep: var(--bg-deep);
   --color-surface: var(--surface);
@@ -180,9 +212,12 @@
     line-height: 1.04;
     letter-spacing: -0.02em;
     text-wrap: balance;
-    /* Длинные русские слова («Роспотребнадзора») в крупном кегле
-       не влезают в узкую колонку — переносим по слогам. */
+    /* Длинные русские слова («Роспотребнадзора») в крупном кегле не всегда
+       влезают в узкую колонку. Сначала пробуем перенос по слогам, и только
+       если словарь переносов недоступен — разрыв слова: лучше некрасивый
+       перенос, чем горизонтальная прокрутка всей страницы. */
     hyphens: auto;
+    -webkit-hyphens: auto;
     overflow-wrap: break-word;
   }
 

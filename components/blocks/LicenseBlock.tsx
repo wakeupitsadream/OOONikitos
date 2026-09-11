@@ -23,15 +23,11 @@ export function LicenseBlock({ variant = 'compact', points, className = '' }: Li
     <div className={className}>
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-12">
         <div className="min-w-0">
-          <div className="flex items-start gap-4">
-            <Diamond variant="accent" size="lg">
-              <ShieldCheck aria-hidden="true" />
-            </Diamond>
-            <div className="min-w-0">
-              <p className="eyebrow text-accent-ink">Лицензированная деятельность</p>
-              <h2 className="display-lg mt-2">Лицензия Роспотребнадзора</h2>
-            </div>
-          </div>
+          <Diamond variant="accent" size="lg">
+            <ShieldCheck aria-hidden="true" />
+          </Diamond>
+          <p className="eyebrow mt-5 text-accent-ink">Лицензированная деятельность</p>
+          <h2 className="display-lg mt-2">Лицензия Роспотребнадзора</h2>
 
           <p className="lead mt-5">
             Оказываем услуги по дезинфекции, дезинсекции и дератизации в соответствии с требованиями
@@ -59,7 +55,7 @@ export function LicenseBlock({ variant = 'compact', points, className = '' }: Li
             </div>
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <dt className="text-fg-subtle">Статус</dt>
-              <dd className="font-semibold text-[var(--color-ok)]">{LICENSE.status}</dd>
+              <dd className="font-semibold text-[var(--ok)]">{LICENSE.status}</dd>
             </div>
             {variant === 'full' ? (
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">

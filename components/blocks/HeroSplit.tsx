@@ -44,8 +44,8 @@ export function HeroSplit() {
             className="eyebrow rise mt-6 text-white/45"
             style={{ '--rise-delay': '230ms' } as React.CSSProperties}
           >
-            Качество <span className="text-[var(--color-red)]">•</span> Надёжность{' '}
-            <span className="text-[var(--color-red)]">•</span> Доверие
+            Качество <span className="text-[var(--brand-dot)]">•</span> Надёжность{' '}
+            <span className="text-[var(--brand-dot)]">•</span> Доверие
           </p>
         </div>
 
@@ -58,10 +58,28 @@ export function HeroSplit() {
             href={siteUrl(remont.site)}
             className="group relative overflow-hidden rounded-[var(--radius-md)] border border-white/12 bg-[#121110] p-7 transition-colors duration-300 hover:border-[var(--color-gold)] md:p-9"
           >
-            <span
-              className="pointer-events-none absolute -right-6 top-0 h-full w-24 rotate-[12deg] bg-gradient-to-b from-[var(--color-gold-bright)] via-[var(--color-gold)] to-transparent opacity-25 transition-opacity duration-300 group-hover:opacity-45"
+            <svg
+              className="pointer-events-none absolute inset-y-0 right-0 h-full w-28 opacity-70 transition-opacity duration-300 group-hover:opacity-100"
+              viewBox="0 0 112 320"
+              preserveAspectRatio="none"
               aria-hidden="true"
-            />
+            >
+              <defs>
+                <linearGradient id="hero-crack" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--color-gold-bright)" />
+                  <stop offset="55%" stopColor="var(--color-gold)" />
+                  <stop offset="100%" stopColor="var(--color-gold-deep)" />
+                </linearGradient>
+              </defs>
+              {/* Ломаная «трещина» с оборота визитки: тонкая линия, не пятно */}
+              <path
+                d="M96 -10L66 78L84 104L48 196L64 224L30 330"
+                stroke="url(#hero-crack)"
+                strokeWidth="5"
+                fill="none"
+                strokeLinejoin="miter"
+              />
+            </svg>
             <p className="eyebrow text-[var(--color-gold)]">{remont.tagline}</p>
             <p className="display-md mt-3 text-white">{remont.name}</p>
             <p className="mt-3 max-w-sm text-[0.9375rem] text-white/65">{remont.description}</p>
@@ -80,7 +98,7 @@ export function HeroSplit() {
             className="group relative overflow-hidden rounded-[var(--radius-md)] border border-transparent bg-[#fafaf9] p-7 text-[#102328] transition-colors duration-300 hover:border-[var(--color-teal)] md:p-9"
           >
             <span
-              className="pointer-events-none absolute -left-6 top-0 h-full w-24 -rotate-[12deg] bg-gradient-to-b from-[var(--color-red)] to-[var(--color-teal)] opacity-20 transition-opacity duration-300 group-hover:opacity-35"
+              className="pointer-events-none absolute inset-y-0 left-0 w-2 bg-[linear-gradient(to_bottom,var(--color-red)_0_45%,var(--color-teal)_45%_100%)]"
               aria-hidden="true"
             />
             <p className="eyebrow text-[var(--color-teal-ink)]">{dezgarant.tagline}</p>

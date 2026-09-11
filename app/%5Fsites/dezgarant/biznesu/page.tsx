@@ -42,8 +42,9 @@ export default function BusinessPage() {
       <Section>
         <Reveal>
           <SectionHead
+            as="h1"
             eyebrow="Организациям"
-            title="Санитарная обязанность, закрытая документами"
+            title="Дезинфекция и дератизация для бизнеса в Оренбурге"
             lead="Проверка Роспотребнадзора смотрит не на чистоту в моменте, а на то, можете ли вы подтвердить проведённые мероприятия. Мы даём комплект, который это подтверждает."
           />
         </Reveal>
@@ -74,7 +75,7 @@ export default function BusinessPage() {
         <Reveal>
           <Card className="border-l-4 border-l-accent">
             <div className="flex items-start gap-4">
-              <AlertTriangle className="mt-1 size-6 shrink-0 text-[var(--color-warn)]" aria-hidden="true" />
+              <AlertTriangle className="mt-1 size-6 shrink-0 text-[var(--warn)]" aria-hidden="true" />
               <div>
                 <p className="display-md">Как часто нужны обработки</p>
                 <p className="mt-3 text-[0.9375rem] text-fg-muted">{FREQUENCY_NOTE}</p>

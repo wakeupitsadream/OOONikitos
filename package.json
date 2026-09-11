@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "node -e \"require('node:fs').rmSync('.next/dev/types',{recursive:true,force:true})\" && tsc --noEmit",
     "test": "node --import ./tests/helpers/register.mjs --test \"tests/unit/**/*.test.mjs\"",
     "e2e": "playwright test",
     "check": "npm run lint && npm run typecheck && npm run test && npm run build"

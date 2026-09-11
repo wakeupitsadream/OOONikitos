@@ -14,6 +14,8 @@ export default defineConfig({
   expect: { timeout: 10_000 },
   use: {
     baseURL,
+    // Браузер предустановлен в образе; playwright install запускать нельзя
+    launchOptions: { executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' },
     trace: 'retain-on-failure',
     locale: 'ru-RU',
     timezoneId: 'Asia/Yekaterinburg',

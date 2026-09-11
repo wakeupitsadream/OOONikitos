@@ -213,7 +213,7 @@ export function LeadForm({
       </Button>
 
       {status === 'error' ? (
-        <p role="alert" className="mt-4 text-sm text-[var(--color-danger)]">
+        <p role="alert" className="mt-4 text-sm text-[var(--danger)]">
           Заявка не отправилась.{' '}
           {fallbackPhone ? (
             <>

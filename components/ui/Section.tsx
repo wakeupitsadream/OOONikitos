@@ -44,6 +44,8 @@ type SectionHeadProps = {
   /** Выравнивание: по левому краю по умолчанию — ритм без лишней симметрии. */
   align?: 'left' | 'center';
   className?: string;
+  /** Уровень заголовка: на странице должен быть ровно один h1. */
+  as?: 'h1' | 'h2';
 };
 
 export function SectionHead({
@@ -52,12 +54,14 @@ export function SectionHead({
   lead,
   align = 'left',
   className = '',
+  as = 'h2',
 }: SectionHeadProps) {
   const alignment = align === 'center' ? 'text-center mx-auto max-w-2xl' : 'max-w-3xl';
+  const Heading = as;
   return (
     <header className={`${alignment} ${className}`}>
       {eyebrow ? <p className="eyebrow text-accent-ink mb-3">{eyebrow}</p> : null}
-      <h2 className="display-lg">{title}</h2>
+      <Heading className="display-lg">{title}</Heading>
       {lead ? <p className="lead mt-4">{lead}</p> : null}
     </header>
   );

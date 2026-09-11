@@ -20,14 +20,14 @@ function FieldShell({ id, label, error, hint, required, children }: FieldShellPr
       <label htmlFor={id} className="mb-1.5 block text-sm font-semibold">
         {label}
         {required ? (
-          <span className="ml-1 text-[var(--color-red)]" aria-hidden="true">
+          <span className="ml-1 text-[var(--danger)]" aria-hidden="true">
             *
           </span>
         ) : null}
       </label>
       {children}
       {error ? (
-        <p id={`${id}-error`} role="alert" className="mt-1.5 text-sm text-[var(--color-danger)]">
+        <p id={`${id}-error`} role="alert" className="mt-1.5 text-sm text-[var(--danger)]">
           {error}
         </p>
       ) : hint ? (
@@ -51,7 +51,7 @@ export function Input({ id, label, error, hint, className = '', required, ...res
     <FieldShell id={id} label={label} error={error} hint={hint} required={required}>
       <input
         id={id}
-        className={`${CONTROL} ${error ? 'border-[var(--color-danger)]' : 'border-border-strong'} ${className}`}
+        className={`${CONTROL} ${error ? 'border-[var(--danger)]' : 'border-border-strong'} ${className}`}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
         required={required}
@@ -83,7 +83,7 @@ export function Textarea({
       <textarea
         id={id}
         rows={rows}
-        className={`${CONTROL} resize-y ${error ? 'border-[var(--color-danger)]' : 'border-border-strong'} ${className}`}
+        className={`${CONTROL} resize-y ${error ? 'border-[var(--danger)]' : 'border-border-strong'} ${className}`}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
         required={required}
@@ -107,7 +107,7 @@ export function Checkbox({ id, label, error, className = '', ...rest }: Checkbox
           id={id}
           type="checkbox"
           className={`mt-0.5 size-5 shrink-0 cursor-pointer accent-[var(--accent)] ${
-            error ? 'outline outline-2 outline-offset-2 outline-[var(--color-danger)]' : ''
+            error ? 'outline outline-2 outline-offset-2 outline-[var(--danger)]' : ''
           } ${className}`}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? `${id}-error` : undefined}
@@ -116,7 +116,7 @@ export function Checkbox({ id, label, error, className = '', ...rest }: Checkbox
         <span className="text-fg-muted">{label}</span>
       </label>
       {error ? (
-        <p id={`${id}-error`} role="alert" className="mt-1.5 text-sm text-[var(--color-danger)]">
+        <p id={`${id}-error`} role="alert" className="mt-1.5 text-sm text-[var(--danger)]">
           {error}
         </p>
       ) : null}

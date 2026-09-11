@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Clock, RotateCcw, ShieldCheck, Truck } from 'lucide-react';
 import {
   calcDezgarant,
@@ -45,6 +45,13 @@ const OBJECTS: ObjectOption[] = [
   { id: 'plot', label: 'Участок', needsAmount: 'sotka' },
 ];
 
+/** Слоты до монтирования: без «сегодня», иначе разметка сервера разойдётся. */
+const BASE_SLOTS = [
+  { id: 'tomorrow-morning', label: 'Завтра, 9:00–12:00' },
+  { id: 'tomorrow-afternoon', label: 'Завтра, 14:00–17:00' },
+  { id: 'any', label: 'Любое удобное время' },
+];
+
 /** Услуги, которые считаются только по участку. */
 const PLOT_ONLY: ProblemId[] = ['kleshchi'];
 
@@ -83,10 +90,18 @@ export function DezDiagnostic({ initialProblem, phone, className = '' }: DezDiag
     return calcDezgarant(input, DEZGARANT_RATES);
   }, [problem, activeObject?.id, needsAmount, amount, method]);
 
-  // Время берём один раз при рендере на клиенте: расчёт детерминирован,
-  // случайности в данных нет — картинка воспроизводима.
-  const slots = useMemo(() => visitSlots(new Date()), []);
-  const soonest = useMemo(() => nextVisitLabel(new Date()), []);
+  // Время известно только в браузере: страница статическая, и её разметка
+  // испеклась при сборке. Считать «сегодня/завтра» на сервере нельзя —
+  // получим расхождение при гидрации. До монтирования показываем набор
+  // слотов без привязки к сегодняшнему дню.
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setNow(new Date()));
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  const slots = useMemo(() => (now ? visitSlots(now) : BASE_SLOTS), [now]);
+  const soonest = now ? nextVisitLabel(now) : null;
 
   const problemLabel = PROBLEMS.find((item) => item.id === problem)?.label ?? '';
   const objectLabel = activeObject?.label ?? '';
@@ -278,7 +293,13 @@ export function DezDiagnostic({ initialProblem, phone, className = '' }: DezDiag
                 <li className="flex items-start gap-3">
                   <Truck className="mt-0.5 size-5 shrink-0 text-accent-ink" aria-hidden="true" />
                   <span>
-                    Ближайший выезд — <strong>{soonest}</strong>.
+                    {soonest ? (
+                      <>
+                        Ближайший выезд — <strong>{soonest}</strong>.
+                      </>
+                    ) : (
+                      'Ближайшее свободное время назовём при звонке.'
+                    )}
                   </span>
                 </li>
               </ul>

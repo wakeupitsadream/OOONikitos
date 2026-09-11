@@ -156,7 +156,7 @@ export default function DezgarantHome() {
                 className="flex items-start gap-3 rounded-[var(--radius-sm)] border border-border bg-surface px-4 py-3"
               >
                 {row.included ? (
-                  <Check className="mt-0.5 size-5 shrink-0 text-[var(--color-ok)]" aria-hidden="true" />
+                  <Check className="mt-0.5 size-5 shrink-0 text-[var(--ok)]" aria-hidden="true" />
                 ) : (
                   <X className="mt-0.5 size-5 shrink-0 text-fg-subtle" aria-hidden="true" />
                 )}
