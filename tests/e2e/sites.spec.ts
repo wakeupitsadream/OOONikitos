@@ -86,6 +86,39 @@ for (const site of SITES) {
   });
 }
 
+test.describe('Мобильное меню', () => {
+  // На телефоне: шторка должна быть в пределах экрана и закрываться по ссылке.
+  // Ловит регрессию, когда panel позиционируется относительно шапки
+  // с backdrop-filter и уезжает за верхнюю кромку.
+  for (const site of SITES) {
+    test(`${site.name}: шторка открывается в пределах экрана`, async ({ page }, testInfo) => {
+      test.skip(testInfo.project.name !== 'mobile', 'только мобильный проект');
+      await page.goto(url(site.home, site.id), { waitUntil: 'load' });
+
+      await page.getByRole('button', { name: 'Открыть меню' }).click();
+      const panel = page.getByRole('dialog', { name: 'Меню сайта' });
+      await expect(panel).toBeVisible();
+
+      const viewport = page.viewportSize();
+      const box = await panel.boundingBox();
+      expect(box, 'шторка должна иметь размеры').not.toBeNull();
+      expect(box!.y, 'верх шторки не выше экрана').toBeGreaterThanOrEqual(0);
+      expect(box!.y + box!.height, 'низ шторки не ниже экрана').toBeLessThanOrEqual(
+        (viewport?.height ?? 0) + 1,
+      );
+
+      // Первый пункт меню кликается и уводит на свою страницу
+      const first = panel.getByRole('link').first();
+      const href = await first.getAttribute('href');
+      await first.click();
+      await expect(panel).toBeHidden();
+      if (href && href.startsWith('/') && !href.startsWith('/#')) {
+        await expect(page).toHaveURL(new RegExp(href.replace(/[/]/g, '\\/')));
+      }
+    });
+  }
+});
+
 test.describe('Форма заявки', () => {
   test('пустая форма показывает ошибки по-русски', async ({ page }) => {
     await page.goto(url('/', 'dezgarant'), { waitUntil: 'load' });

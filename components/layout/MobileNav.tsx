@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { Menu, Phone, X } from 'lucide-react';
 import { SITES, type SiteId } from '@/config/sites';
@@ -45,7 +46,13 @@ export function MobileNav({ site, nav, phone }: MobileNavProps) {
         <Menu className="size-5" aria-hidden="true" />
       </button>
 
-      {open ? (
+      {/*
+        Шторка выносится порталом в body. У шапки backdrop-filter, а он делает
+        шапку системой отсчёта для position: fixed — без портала меню
+        позиционируется относительно шапки и уезжает за верхнюю кромку экрана.
+      */}
+      {open
+        ? createPortal(
         <div className="fixed inset-0 z-[70] lg:hidden">
           <button
             type="button"
@@ -59,7 +66,7 @@ export function MobileNav({ site, nav, phone }: MobileNavProps) {
             role="dialog"
             aria-modal="true"
             aria-label="Меню сайта"
-            className="absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-[var(--radius-md)] border-t border-border bg-bg p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-[0_-20px_60px_-20px_rgba(0,0,0,0.6)]"
+            className="absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto overscroll-contain rounded-t-[var(--radius-md)] border-t border-border bg-bg p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-[0_-20px_60px_-20px_rgba(0,0,0,0.6)]"
           >
             <div className="mb-5 flex items-center justify-between">
               <p className="eyebrow text-fg-subtle">{config.shortName}</p>
@@ -100,8 +107,10 @@ export function MobileNav({ site, nav, phone }: MobileNavProps) {
               </a>
             ) : null}
           </div>
-        </div>
-      ) : null}
+        </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }
