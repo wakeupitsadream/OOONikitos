@@ -378,7 +378,8 @@ export function RemontCalculator({
                     </span>
                   </p>
 
-                  <ul className="mt-5 divide-y divide-border border-y border-border">
+                  <p className="eyebrow mt-6 text-fg-subtle">Раскладка по работам</p>
+                  <ul className="mt-2 divide-y divide-border border-y border-border">
                     {result.items.map((item) => (
                       <li key={item.id} className="flex items-baseline justify-between gap-3 py-2.5">
                         <span className="text-[0.9375rem]">{item.label}</span>

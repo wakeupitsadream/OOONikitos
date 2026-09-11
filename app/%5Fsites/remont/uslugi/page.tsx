@@ -19,7 +19,7 @@ export const metadata: Metadata = pageMetadata({
   path: '/uslugi',
   title: 'Услуги: штукатурка, шпаклёвка, покраска и обои в Оренбурге',
   description:
-    'Отделка стен в Оренбурге: штукатурка по маякам, шпаклёвка под покраску, покраска стен и потолков, поклейка обоев. Расчёт площади стен онлайн, смета фиксируется договором.',
+    'Отделка стен в Оренбурге: штукатурка по маякам, шпаклёвка под покраску, покраска стен и потолков, обои. Расчёт площади онлайн, смета в договоре.',
 });
 
 export default function RemontServicesPage() {
@@ -55,6 +55,12 @@ export default function RemontServicesPage() {
         </Reveal>
         <Reveal delay={80} className="mt-10">
           <ServiceGrid items={items} basePath="/uslugi" />
+        </Reveal>
+        <Reveal delay={140}>
+          <p className="mt-6 max-w-2xl text-sm text-fg-subtle">
+            В карточках нет итоговой суммы: она зависит от площади стен вашего объекта. Ставка за
+            квадратный метр — ниже, точная смета — после замера.
+          </p>
         </Reveal>
       </Section>
 

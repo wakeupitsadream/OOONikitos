@@ -11,7 +11,6 @@ import { siteOrigin, siteUrl } from '@/lib/site';
 import { formatPrice, pluralize } from '@/lib/plural';
 import { Section, SectionHead } from '@/components/ui/Section';
 import { Card } from '@/components/ui/Card';
-import { Diamond } from '@/components/ui/Diamond';
 import { Button } from '@/components/ui/Button';
 import { Accordion, AccordionItem } from '@/components/ui/Accordion';
 import { DraftMark } from '@/components/ui/Badge';
@@ -206,30 +205,51 @@ export default function RemontHome() {
         </Section>
       ) : null}
 
-      {/* Гарантии — дословно с оборота визитки */}
+      {/* Гарантии — дословно с оборота визитки.
+          Светлая мраморная панель: лицевая сторона визитки внутри чёрного сайта. */}
       <Section id="garantii" tone="deep">
         <Reveal>
-          <SectionHead
-            eyebrow="Мы гарантируем"
-            title="Четыре обещания с нашей визитки"
-            lead="Это не рекламные формулировки, а то, что напечатано на карточке, которую мы отдаём клиенту в руки."
-          />
+          <div className="clip-corner relative overflow-hidden bg-[var(--color-marble)] p-6 text-[var(--color-ink)] md:p-10 lg:p-14">
+            <span
+              className="pointer-events-none absolute inset-0 opacity-70 [background-image:radial-gradient(110%_80%_at_12%_0%,#ffffff_0%,transparent_58%),repeating-linear-gradient(118deg,rgba(16,35,40,0.045)_0px,rgba(16,35,40,0.045)_1px,transparent_1px,transparent_16px)]"
+              aria-hidden="true"
+            />
+            <header className="relative max-w-2xl">
+              <p className="eyebrow text-[color-mix(in_srgb,var(--color-ink)_65%,transparent)]">
+                Мы гарантируем
+              </p>
+              <h2 className="display-lg mt-3">Четыре обещания с нашей визитки</h2>
+              <p className="mt-4 text-[1.0625rem] leading-relaxed text-[color-mix(in_srgb,var(--color-ink)_78%,transparent)]">
+                Это не рекламные формулировки, а то, что напечатано на карточке, которую мы
+                отдаём клиенту в руки.
+              </p>
+            </header>
+
+            <ul className="relative mt-10 grid gap-7 sm:grid-cols-2 lg:gap-9">
+              {GUARANTEES.map((item, index) => (
+                <li key={item.title} className="border-t-2 border-[var(--color-gold-deep)] pt-4">
+                  <span className="tabular font-display text-sm font-extrabold text-[var(--color-gold-deep)]">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <p className="mt-1.5 font-display text-lg font-extrabold leading-snug">
+                    {item.title}
+                  </p>
+                  <p className="mt-2 text-[0.9375rem] text-[color-mix(in_srgb,var(--color-ink)_75%,transparent)]">
+                    {item.text}
+                  </p>
+                </li>
+              ))}
+            </ul>
+
+            <p className="relative mt-9 flex items-center gap-3 border-t border-[color-mix(in_srgb,var(--color-ink)_15%,transparent)] pt-5 text-sm text-[color-mix(in_srgb,var(--color-ink)_70%,transparent)]">
+              <ShieldCheck
+                className="size-5 shrink-0 text-[var(--color-gold-deep)]"
+                aria-hidden="true"
+              />
+              Всё перечисленное закрепляется договором — это проверяется до начала работ.
+            </p>
+          </div>
         </Reveal>
-        <div className="mt-10 grid gap-5 sm:grid-cols-2">
-          {GUARANTEES.map((item, index) => (
-            <Reveal key={item.title} delay={index * 70}>
-              <Card className="h-full" clipped>
-                <Diamond variant="accent" size="md">
-                  <ShieldCheck aria-hidden="true" />
-                </Diamond>
-                <p className="mt-4 font-display text-lg font-extrabold leading-snug">
-                  {item.title}
-                </p>
-                <p className="mt-2 text-[0.9375rem] text-fg-muted">{item.text}</p>
-              </Card>
-            </Reveal>
-          ))}
-        </div>
       </Section>
 
       {/* Этапы */}
@@ -346,6 +366,9 @@ export default function RemontHome() {
           </div>
         </Reveal>
         <Reveal delay={140}>
+          <p className="mt-3 text-sm text-fg-subtle sm:hidden">
+            Таблица прокручивается вбок.
+          </p>
           <p className="mt-5 max-w-3xl text-sm text-fg-subtle">
             Дни рабочие. Высота потолка 2,7 м, из площади вычтены окна и двери.
             {PRICE_STATUS === 'draft'

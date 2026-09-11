@@ -17,9 +17,9 @@ import { CallbackBar } from '@/components/blocks/CallbackBar';
 export const metadata: Metadata = pageMetadata({
   site: 'remont',
   path: '/ceny',
-  title: 'Цены на отделку стен в Оренбурге — штукатурка, шпаклёвка, покраска',
+  title: 'Цены на отделку стен в Оренбурге — ставки за м²',
   description:
-    'Расценки за квадратный метр стен: штукатурка, шпаклёвка, покраска, обои. Норма выработки, технологические паузы, минимальный заказ. Смета фиксируется договором после замера.',
+    'Расценки за квадратный метр стен: штукатурка, шпаклёвка, покраска, обои. Норма выработки, паузы на сушку, минимальный заказ. Смета — в договоре.',
 });
 
 /** Что меняет смету — это ровно те параметры, которые спрашивает калькулятор. */
@@ -113,6 +113,10 @@ export default function RemontPricesPage() {
               </tbody>
             </table>
           </div>
+        </Reveal>
+
+        <Reveal delay={120}>
+          <p className="mt-3 text-sm text-fg-subtle sm:hidden">Таблица прокручивается вбок.</p>
         </Reveal>
 
         <Reveal delay={140} className="mt-6">

@@ -141,6 +141,7 @@ export default function RemontContactsPage() {
               site="remont"
               fallbackPhone={REMONT_PHONE}
               withTask
+              title="Заявка на замер"
               submitLabel="Записаться на замер"
             />
           </Reveal>
