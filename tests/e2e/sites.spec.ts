@@ -89,7 +89,7 @@ for (const site of SITES) {
 test.describe('Форма заявки', () => {
   test('пустая форма показывает ошибки по-русски', async ({ page }) => {
     await page.goto(url('/', 'dezgarant'), { waitUntil: 'load' });
-    const form = page.locator('form').filter({ hasText: 'Оставьте заявку' }).first();
+    const form = page.locator('form[data-ready="true"]').filter({ hasText: 'Оставьте заявку' }).first();
     await form.scrollIntoViewIfNeeded();
     await form.getByRole('button', { name: /Отправить заявку/ }).click();
 
@@ -100,7 +100,7 @@ test.describe('Форма заявки', () => {
 
   test('валидная заявка доходит до экрана успеха', async ({ page }) => {
     await page.goto(url('/', 'dezgarant'), { waitUntil: 'load' });
-    const form = page.locator('form').filter({ hasText: 'Оставьте заявку' }).first();
+    const form = page.locator('form[data-ready="true"]').filter({ hasText: 'Оставьте заявку' }).first();
     await form.scrollIntoViewIfNeeded();
 
     await form.getByLabel('Как вас зовут').fill('Иван');
@@ -117,6 +117,8 @@ test.describe('Диагностика ДезГаранта', () => {
     await page.goto(url('/', 'dezgarant'), { waitUntil: 'load' });
     const block = page.locator('#raschet');
     await block.scrollIntoViewIfNeeded();
+    // Ближайший выезд считается в эффекте — значит компонент уже гидрирован
+    await expect(block.getByText(/Ближайший выезд/)).toBeVisible();
 
     const price = block.locator('p.display-lg').first();
     const initial = (await price.textContent()) ?? '';
@@ -131,8 +133,9 @@ test.describe('Диагностика ДезГаранта', () => {
     await page.goto(url('/', 'dezgarant'), { waitUntil: 'load' });
     const block = page.locator('#raschet');
     await block.scrollIntoViewIfNeeded();
+    await expect(block.getByText(/Ближайший выезд/)).toBeVisible();
     await block.getByRole('button', { name: 'Клопы', exact: true }).click();
-    await expect(block.getByText(/обработки/)).toBeVisible();
+    await expect(block.getByText(/контрольный визит — всё уже в цене/)).toBeVisible();
   });
 });
 

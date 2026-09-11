@@ -38,10 +38,13 @@ export function LeadForm({
   className = '',
 }: LeadFormProps) {
   const openedAt = useRef<number>(0);
+  const formRef = useRef<HTMLFormElement>(null);
 
   // Момент открытия формы: слишком быстрая отправка — признак бота.
+  // Здесь же помечаем форму готовой: до гидрации обработчик отправки не навешен.
   useEffect(() => {
     openedAt.current = Date.now();
+    formRef.current?.setAttribute('data-ready', 'true');
   }, []);
   const [status, setStatus] = useState<Status>('idle');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -135,6 +138,7 @@ export function LeadForm({
 
   return (
     <form
+      ref={formRef}
       onSubmit={onSubmit}
       noValidate
       className={`rounded-[var(--radius-md)] border border-border bg-surface p-6 md:p-7 ${className}`}
