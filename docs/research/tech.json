@@ -1,0 +1,360 @@
+{
+ "facts": [
+  {
+   "topic": "ОГРАНИЧЕНИЯ ИССЛЕДОВАНИЯ (notes)",
+   "fact": "ВАЖНО: в этой сессии исчерпан лимит WebSearch (200/200), а корпоративная egress-политика прокси блокирует (403/407) домены: vercel.com, nextjs.org, tailwindcss.com, core.telegram.org, yandex.ru, fonts.google.com, openapi.vercel.sh, habr.com, en.wikipedia.org, r.jina.ai. Согласно /root/.ccr/README.md такие блокировки нельзя обходить — их нужно фиксировать. Поэтому факты собраны из доступных первоисточников: репозиториев GitHub (vercel/next.js, google/fonts, tailwindlabs/tailwindcss.com, PaulSonOfLars/telegram-bot-api-spec, grammyjs/website, artginzburg/next-ym), npm registry и официального Vercel MCP-инструмента поиска по vercel.com/docs (он отдаёт сниппеты с каноническими URL, но не прозу).",
+   "source": "https://vercel.com/docs/limits/fair-use-guidelines (EGRESS_BLOCKED)"
+  },
+  {
+   "topic": "Next.js — текущая версия",
+   "fact": "Текущая стабильная версия Next.js на 11.09.2026 — 16.3.4 (dist-tag latest). Канареечная ветка — 16.4.0-canary.26, то есть мажор 16 актуален, 17 ещё не вышел. Для сравнения: dist-tag rc = 15.0.0-rc.1, backport = 15.5.25.",
+   "source": "https://registry.npmjs.org/-/package/next/dist-tags"
+  },
+  {
+   "topic": "Next.js — дата выхода 16",
+   "fact": "Next.js 16.0.0 выпущен 22 октября 2025 года. Заголовочные изменения релиза: Turbopack по умолчанию, стабилизация Cache Components, новый Proxy API вместо Middleware API, стабильный React Compiler, удаление AMP и устаревшего runtime config.",
+   "source": "https://github.com/vercel/next.js/releases/tag/v16.0.0"
+  },
+  {
+   "topic": "Next.js 16 — Turbopack по умолчанию",
+   "fact": "«Starting with Next.js 16, Turbopack is stable and used by default with `next dev` and `next build`». Флаг --turbopack больше не нужен. Проекты с кастомным Webpack-конфигом будут падать на сборке, пока не мигрируют или явно не вернутся на webpack флагом --webpack.",
+   "source": "https://raw.githubusercontent.com/vercel/next.js/canary/docs/01-app/02-guides/upgrading/version-16.mdx"
+  },
+  {
+   "topic": "Next.js 16 — middleware → proxy",
+   "fact": "Файл middleware.ts переименован в proxy.ts, именованный экспорт `middleware` — в `proxy`. Дословно из доков: «The named export `middleware` is also deprecated. Rename your function to `proxy`». middleware помечен как deprecated, но НЕ удалён. Конфиг-флаги переименованы: skipMiddlewareUrlNormalize → skipProxyUrlNormalize. Есть кодмод: `npx @next/codemod@canary middleware-to-proxy .`",
+   "source": "https://raw.githubusercontent.com/vercel/next.js/canary/docs/01-app/02-guides/upgrading/version-16.mdx"
+  },
+  {
+   "topic": "Next.js 16 — proxy и Edge Runtime",
+   "fact": "Дословно: «The `edge` runtime is NOT supported in `proxy`. The `proxy` runtime is `nodejs`, and it cannot be configured. If you want to continue using the `edge` runtime, keep using `middleware`». Опция runtime в proxy недоступна — её установка бросает ошибку.",
+   "source": "https://raw.githubusercontent.com/vercel/next.js/canary/docs/01-app/03-api-reference/03-file-conventions/proxy.mdx"
+  },
+  {
+   "topic": "Next.js 16 — сигнатура proxy.ts",
+   "fact": "proxy.ts кладётся в корень проекта или в src (на одном уровне с app/pages). Экспорт: `export function proxy(request: NextRequest, event?: NextFetchEvent)` — default или именованный `proxy`. Есть тип NextProxy. Опционально экспортируется `export const config = { matcher: ... }`; значения matcher должны быть константами («The matcher values need to be constants so they can be statically analyzed at build-time»), поддерживаются массивы, regex-паттерны вида '/((?!api|_next).*)' и объектные матчеры с source/has/missing.",
+   "source": "https://raw.githubusercontent.com/vercel/next.js/canary/docs/01-app/03-api-reference/03-file-conventions/proxy.mdx"
+  },
+  {
+   "topic": "Next.js 16 — React",
+   "fact": "Next.js 16 поставляется с React 19.2 (View Transitions, useEffectEvent). Текущая стабильная версия самого React в npm на сентябрь 2026 — 19.3.0. React 20 не выпущен; peerDependencies next@16.3.4 — `^18.2.0 || ^19.0.0`.",
+   "source": "https://registry.npmjs.org/next/latest"
+  },
+  {
+   "topic": "Next.js 16 — минимальные требования",
+   "fact": "Минимальная версия Node.js поднята до 20.9.0 (18.x больше не поддерживается), минимальная TypeScript — 5.1.0.",
+   "source": "https://raw.githubusercontent.com/vercel/next.js/canary/docs/01-app/02-guides/upgrading/version-16.mdx"
+  },
+  {
+   "topic": "Next.js 16 — async request APIs",
+   "fact": "Синхронный доступ к cookies(), headers(), draftMode(), params и searchParams полностью удалён — всё только через await. Для типобезопасной миграции есть хелперы PageProps, LayoutProps, RouteContext, генерируемые через `npx next typegen`.",
+   "source": "https://raw.githubusercontent.com/vercel/next.js/canary/docs/01-app/02-guides/upgrading/version-16.mdx"
+  },
+  {
+   "topic": "Next.js 16 — кеширование",
+   "fact": "revalidateTag теперь требует второй аргумент cacheLife. Добавлен updateTag с семантикой read-your-writes. cacheLife и cacheTag стабилизированы (сняты префиксы unstable_). Экспериментальный флаг PPR заменён стабильной опцией cacheComponents; experimental.dynamicIO и experimental.useCache удалены.",
+   "source": "https://raw.githubusercontent.com/vercel/next.js/canary/docs/01-app/02-guides/upgrading/version-16.mdx"
+  },
+  {
+   "topic": "Next.js 16 — удаления и прочие breaking changes",
+   "fact": "Удалены: поддержка AMP, команда `next lint` (используйте ESLint/Biome напрямую), serverRuntimeConfig и publicRuntimeConfig (заменены env-переменными). Устарели next/legacy/image и images.domains (вместо него images.remotePatterns). Все параллельные слоты требуют явных default.js. ESLint Flat Config стал дефолтом. React Compiler переведён из experimental в stable. Отключён override плавного скролла (вернуть — атрибутом data-scroll-behavior=\"smooth\").",
+   "source": "https://raw.githubusercontent.com/vercel/next.js/canary/docs/01-app/02-guides/upgrading/version-16.mdx"
+  },
+  {
+   "topic": "Next.js 16 — next/image дефолты",
+   "fact": "Изменены дефолты оптимизации картинок: minimumCacheTTL поднят с 60 секунд до 4 часов; qualities ограничены значением [75]; imageSizes больше не включает 16px; query-строки у локальных картинок требуют images.localPatterns.search; оптимизация локальных IP заблокирована (нужен флаг dangerouslyAllowLocalIP); максимум редиректов ограничен 3.",
+   "source": "https://raw.githubusercontent.com/vercel/next.js/canary/docs/01-app/02-guides/upgrading/version-16.mdx"
+  },
+  {
+   "topic": "Tailwind CSS — текущая версия",
+   "fact": "Текущая стабильная версия Tailwind CSS — 4.3.3 (dist-tag latest). Параллельно поддерживается ветка v3-lts = 3.4.19. Никакого v5 нет.",
+   "source": "https://registry.npmjs.org/-/package/tailwindcss/dist-tags"
+  },
+  {
+   "topic": "Tailwind CSS v4 — конфигурация через CSS",
+   "fact": "v4 использует CSS-first конфигурацию: вместо трёх директив @tailwind пишется один `@import \"tailwindcss\";`, а токены дизайна объявляются директивой @theme. Дословно: «Theme variables aren't just CSS variables — they also instruct Tailwind to create new utility classes». Переменная --font-poppins автоматически даёт утилиту font-poppins; можно переопределять дефолты (--breakpoint-sm) и сбрасывать неймспейсы (--color-*: initial). Все theme-переменные компилируются в обычные CSS-переменные на :root.",
+   "source": "https://raw.githubusercontent.com/tailwindlabs/tailwindcss.com/main/src/docs/theme.mdx"
+  },
+  {
+   "topic": "Tailwind CSS v4 — сборка и браузеры",
+   "fact": "PostCSS-плагин вынесен в отдельный пакет @tailwindcss/postcss (для Vite есть @tailwindcss/vite). postcss-import и autoprefixer больше не нужны — импорты и вендорные префиксы обрабатываются автоматически. Требования к браузерам: «Tailwind CSS v4.0 is designed for Safari 16.4+, Chrome 111+, and Firefox 128+» (нужны @property и color-mix()). JS-конфиг всё ещё можно подключить директивой @config, но опции corePlugins, safelist и separator в v4 не поддерживаются. Есть автоматический апгрейдер: `npx @tailwindcss/upgrade`.",
+   "source": "https://raw.githubusercontent.com/tailwindlabs/tailwindcss.com/main/src/docs/upgrade-guide.mdx"
+  },
+  {
+   "topic": "Vercel — несколько доменов на один проект",
+   "fact": "К одному проекту Vercel можно привязать произвольное количество доменов: через Dashboard, через CLI (`vercel domains add example.com`, `vercel domains add www.example.com`, `vercel domains add example.com --force` для переназначения с другого проекта) или через REST API POST /v10/projects/{idOrName}/domains. Ответ API возвращает массив domains с полями name/apexName/projectId/verified/verification — то есть модель «много доменов → один проект» штатная.",
+   "source": "https://vercel.com/docs/domains/set-up-custom-domain"
+  },
+  {
+   "topic": "Vercel — привязка доменов программно",
+   "fact": "Для платформенных сценариев есть SDK: `vercel.projects.addProjectDomain({ idOrName, requestBody: { name: 'customacmesite.com' } })`. Поддерживаются опции gitBranch (привязать домен к ветке), customEnvironmentId, redirect и redirectStatusCode (301/302/307/308). Домен, пока не верифицирован, возвращает verified=false и не работает как алиас.",
+   "source": "https://vercel.com/docs/rest-api/projects/add-a-domain-to-a-project"
+  },
+  {
+   "topic": "Vercel + Next.js — host-based routing (готовый образец)",
+   "fact": "Официальный шаблон Vercel для мультидоменности на Next.js 16 использует именно proxy.ts:\n```ts\nexport async function proxy(request: NextRequest) {\n  const hostname = request.headers.get('host') || '';\n  const { pathname } = request.nextUrl;\n  if (pathname.startsWith('/domains')) return NextResponse.next();\n  if (pathname === '/') return NextResponse.rewrite(new URL(`/domains/${hostname}`, request.url));\n  return NextResponse.next();\n}\nexport const config = { matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'] };\n```\nТо есть подход `/_sites/<brand>` реализуется как rewrite на сегмент `/domains/[domain]` (или `/tenant/[id]`, `/sites/[slug]`).",
+   "source": "https://vercel.com/docs/platforms/examples/multi-tenant-template"
+  },
+  {
+   "topic": "Vercel + Next.js — host-based routing с префиксом пути",
+   "fact": "Второй канонический паттерн: резолвим tenantId по hostname и переписываем путь целиком, сохраняя контекст в заголовке:\n```ts\nconst hostname = request.headers.get('host') || '';\nconst tenantId = await resolveTenantId(hostname);\nconst requestHeaders = new Headers(request.headers);\nrequestHeaders.set('x-tenant-id', tenantId);\nif (pathname === '/') { url.pathname = `/tenant/${tenantId}`; return NextResponse.rewrite(url, { request: { headers: requestHeaders } }); }\nif (pathname.startsWith('/blog')) { url.pathname = `/tenant/${tenantId}/blog${pathname.replace('/blog','')}`; return NextResponse.rewrite(url, { request: { headers: requestHeaders } }); }\n```",
+   "source": "https://vercel.com/docs/platforms/multi-tenant-platforms/middleware-and-routing"
+  },
+  {
+   "topic": "Vercel + Next.js — безопасность host-based routing",
+   "fact": "Документация Vercel прямо требует вычищать входящие tenant-заголовки перед установкой своих, иначе клиент сможет подделать бренд: «Strip inbound tenant headers; only the proxy sets them» — `requestHeaders.delete('x-tenant-id'); requestHeaders.delete('x-tenant-type');`. Заголовок Host также нельзя считать доверенным без сверки со списком известных доменов.",
+   "source": "https://vercel.com/docs/platforms/multi-tenant-platforms/middleware-and-routing"
+  },
+  {
+   "topic": "Next.js — официальный гайд по мультитенантности",
+   "fact": "В документации Next.js есть отдельный гайд по multi-tenant: рекомендованная архитектура — host-based routing, определение бренда по заголовку Host и rewrite либо на структуру `/_sites/<tenant>`, либо на динамический сегмент `[domain]`. Vercel предоставляет готовый рабочий пример — Platforms Starter Kit.",
+   "source": "https://raw.githubusercontent.com/vercel/next.js/canary/docs/01-app/02-guides/multi-tenant.mdx"
+  },
+  {
+   "topic": "Vercel — альтернатива proxy: rewrites в vercel.json",
+   "fact": "Host-based ветвление можно сделать и декларативно, без proxy.ts, через условие `has` на заголовок в vercel.json: `{ \"rewrites\": [{ \"source\": \"/:path*\", \"has\": [{ \"type\": \"header\", \"key\": \"host\", \"value\": \"brand-a.ru\" }], \"destination\": \"/_sites/brand-a/:path*\" }] }`. Формат `has` с type: header и value (в т.ч. с pre/suf) документирован.",
+   "source": "https://vercel.com/docs/project-configuration/vercel-json"
+  },
+  {
+   "topic": "Vercel — лимит доменов на Hobby (НЕ ПОДТВЕРЖДЁН)",
+   "fact": "НЕ УДАЛОСЬ ПРОВЕРИТЬ по первоисточнику: страницы vercel.com/docs/limits и vercel.com/docs/plans/hobby заблокированы egress-политикой. Единственный релевантный подтверждённый факт: REST API возвращает ошибку `custom_domain_needs_upgrade` — «Domain name creation requires a premium account», но она относится к покупке/регистрации домена через реестр Vercel, а не к привязке уже купленного домена. Конкретное число доменов на проект для Hobby требует проверки на живой странице тарифов.",
+   "source": "https://vercel.com/docs/rest-api/errors"
+  },
+  {
+   "topic": "Vercel Hobby — коммерческое использование (НЕ ПОДТВЕРЖДЁН)",
+   "fact": "НЕ УДАЛОСЬ ПРОВЕРИТЬ и процитировать: страница vercel.com/docs/limits/fair-use-guidelines и раздел тарифов заблокированы egress-прокси (403/407), WebSearch исчерпан. Историческая формулировка Vercel запрещает на Hobby коммерческое использование (сайты, приносящие доход, клиентские проекты), и Vercel имеет право приостановить такие деплои с требованием перейти на Pro. Этот пункт ОБЯЗАТЕЛЕН к самостоятельной проверке перед запуском клиентских сайтов — считать его подтверждённым нельзя.",
+   "source": "https://vercel.com/docs/limits/fair-use-guidelines (EGRESS_BLOCKED)"
+  },
+  {
+   "topic": "Vercel Pro — стоимость (НЕ ПОДТВЕРЖДЁН)",
+   "fact": "НЕ УДАЛОСЬ ПРОВЕРИТЬ цену Pro: страница тарифов заблокирована. Подтверждено только то, что апгрейд возможен командой `vercel buy pro` (опции --yes, --json) и MCP-инструментом buy_pro, а точная сумма выдаётся вызовом get_purchase_quote (я его не вызывал — режим read-only).",
+   "source": "https://vercel.com/docs/cli/buy"
+  },
+  {
+   "topic": "Vercel Functions — регионы",
+   "fact": "Регион исполнения задаётся в vercel.json: `{ \"regions\": [\"sfo1\"] }` на уровне проекта, `functions[\"api/x.js\"].regions` — на уровне функции, плюс functionFailoverRegions. Во всей доступной документации фигурируют только коды iad1, sfo1, pdx1, cle1, hnd1, cdg1, lhr1, dub1, fra1 — США, ЕС, Азия. Российского региона среди них нет; полная таблица регионов (vercel.com/docs/regions) заблокирована, но ни один документированный код не указывает на РФ.",
+   "source": "https://vercel.com/docs/functions/configuring-functions/region"
+  },
+  {
+   "topic": "Vercel — регион исполнения в рантайме",
+   "fact": "Фактический регион исполнения доступен через системную переменную окружения VERCEL_REGION (пример из доков: VERCEL_REGION=cdg1) и через заголовок x-vercel-id, который содержит и регионы Edge Network, которые прошёл запрос, и регион, где исполнилась функция.",
+   "source": "https://vercel.com/docs/environment-variables/system-environment-variables"
+  },
+  {
+   "topic": "152-ФЗ — вывод по хранению данных",
+   "fact": "Практический вывод (на основе подтверждённого отсутствия российского региона у Vercel Functions): при отправке персональных данных из формы на Vercel первичная обработка/передача происходит за пределами РФ. Это не снимает требование ч.5 ст.18 152-ФЗ о первичной записи ПДн граждан РФ в базы на территории РФ. Юридическая часть первоисточником не подтверждена — yandex.ru и правовые ресурсы заблокированы.",
+   "source": "https://vercel.com/docs/functions/configuring-functions/region"
+  },
+  {
+   "topic": "Доступность Vercel из РФ 2025–2026 (НЕ ПОДТВЕРЖДЁН)",
+   "fact": "НЕ УДАЛОСЬ ПРОВЕРИТЬ: все новостные и справочные источники по блокировкам Роскомнадзора (habr.com, en.wikipedia.org, поисковая выдача) недоступны — WebSearch исчерпан, домены заблокированы egress-политикой. Данные о блокировках/замедлениях *.vercel.app и *.vercel-dns.com в РФ в 2025–2026 по памяти приводить нельзя. Требуется отдельная проверка с доступом к поиску.",
+   "source": "https://habr.com (EGRESS_BLOCKED)"
+  },
+  {
+   "topic": "Шрифты — Montserrat",
+   "fact": "Montserrat поддерживает субсеты: cyrillic, cyrillic-ext, latin, latin-ext, menu, vietnamese. Вариативная ось wght 100–900, есть италики (включая отдельные файлы Montserrat-ThinItalic и т.д.). Полностью подходит под геометрический гротеск с кириллицей.",
+   "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/montserrat/METADATA.pb"
+  },
+  {
+   "topic": "Шрифты — Manrope",
+   "fact": "Manrope поддерживает субсеты: cyrillic, cyrillic-ext, greek, latin, latin-ext, menu, vietnamese. Вариативная ось wght 200–800. Италиков нет.",
+   "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/manrope/METADATA.pb"
+  },
+  {
+   "topic": "Шрифты — Unbounded",
+   "fact": "Unbounded поддерживает субсеты: cyrillic, cyrillic-ext, latin, latin-ext, menu, vietnamese. Вариативная ось wght 200–900. Ярко выраженный геометрический дисплейный гротеск — хорош для логотипа/заголовков.",
+   "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/unbounded/METADATA.pb"
+  },
+  {
+   "topic": "Шрифты — Onest",
+   "fact": "Onest поддерживает субсеты: cyrillic, cyrillic-ext, latin, latin-ext, math, menu, symbols, vietnamese. Вариативная ось wght 100–900 (девять весов). Самый широкий набор субсетов из проверенных.",
+   "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/onest/METADATA.pb"
+  },
+  {
+   "topic": "Шрифты — Golos Text",
+   "fact": "Golos Text поддерживает субсеты: cyrillic, cyrillic-ext, latin, latin-ext, menu. Вариативная ось wght 400–900 — лёгких начертаний (100–300) НЕТ, это ограничение при вёрстке тонких подзаголовков.",
+   "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/golostext/METADATA.pb"
+  },
+  {
+   "topic": "Шрифты — Rubik",
+   "fact": "Rubik поддерживает субсеты: arabic, cyrillic, cyrillic-ext, hebrew, latin, latin-ext, menu. Вариативная ось wght 300–900, есть италики.",
+   "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/rubik/METADATA.pb"
+  },
+  {
+   "topic": "next/font — self-hosting без запросов к Google",
+   "fact": "Дословно из документации: «CSS and font files are downloaded at build time and self-hosted with the rest of your static assets» и «No requests are sent to Google by the browser». То есть next/font/google самостоятельно скачивает шрифты на этапе сборки и раздаёт их со своего домена — GDPR/152-ФЗ-безопасно и без layout shift. Дополнительных действий для self-host не требуется.",
+   "source": "https://raw.githubusercontent.com/vercel/next.js/canary/docs/01-app/03-api-reference/02-components/font.mdx"
+  },
+  {
+   "topic": "next/font — subsets и preload",
+   "fact": "Опция subsets формально необязательна, но: «Failing to specify any subsets while preload is true will result in a warning». preload включён по умолчанию; link rel=preload инжектится в head именно для перечисленных в subsets субсетов. Для кириллицы нужно явно указывать `subsets: ['cyrillic', 'latin']`. Опция display по умолчанию 'swap' (возможные значения auto/block/swap/fallback/optional). Опция variable задаёт имя CSS-переменной для подключения через CSS variables (штатный способ связки с Tailwind).",
+   "source": "https://raw.githubusercontent.com/vercel/next.js/canary/docs/01-app/03-api-reference/02-components/font.mdx"
+  },
+  {
+   "topic": "next/font — вариативные шрифты и веса",
+   "fact": "Для вариативных шрифтов weight указывать не нужно; для невариативных weight обязателен. Несколько весов/стилей задаются массивами: `Roboto({ weight: ['400','700'], style: ['normal','italic'], subsets: ['latin'] })`. Preload действует по области объявления: шрифт в root layout предзагружается глобально, шрифт в layout — на обёрнутых маршрутах, шрифт на странице — только на ней. Локальные файлы — через next/font/local.",
+   "source": "https://raw.githubusercontent.com/vercel/next.js/canary/docs/01-app/03-api-reference/02-components/font.mdx"
+  },
+  {
+   "topic": "Яндекс.Метрика в Next.js App Router — сниппет",
+   "fact": "Актуальная схема: скрипт tag.js грузится с `mc.yandex.ru/metrika/tag.js` через компонент next/script со стратегией afterInteractive; провайдер оборачивает children в app/layout.tsx. Рекомендуемый набор init-параметров: clickmap, trackLinks, accurateTrackBounce, webvisor, defer. Подтверждено по исходникам действующего пакета @artginzburg/next-ym (описание: «Yandex Metrica for Next.js — App Router, ecommerce, Safari ITP proxy, auto SPA tracking»). Официальный yandex.ru/support/metrica заблокирован egress-прокси и не проверялся.",
+   "source": "https://github.com/artginzburg/next-ym"
+  },
+  {
+   "topic": "Яндекс.Метрика — учёт SPA-переходов",
+   "fact": "В App Router клиентские переходы не перезагружают страницу, поэтому hit нужно слать вручную: провайдер перехватывает смену маршрута через хуки next/navigation (usePathname/useSearchParams) и на каждый переход вызывает `ym(ID, 'hit', url)`. Без этого Метрика засчитает только первый просмотр за визит.",
+   "source": "https://github.com/artginzburg/next-ym"
+  },
+  {
+   "topic": "Яндекс.Метрика — экосистема пакетов",
+   "fact": "Актуальные npm-пакеты на сентябрь 2026: @artginzburg/next-ym (v1.3.7, App Router + автотрекинг SPA + прокси для Safari ITP), next-yandex-metrica (v1.2.3), next-yandex-metrica-atom (v1.0.1), yandex-metrica-ab-react (v1.7.0) и yandex-metrica-ab-node (v2.0.1) для A/B-тестов.",
+   "source": "https://registry.npmjs.org/-/v1/search?text=yandex%20metrica%20next"
+  },
+  {
+   "topic": "Cookie-баннер и 152-ФЗ (НЕ ПОДТВЕРЖДЁН)",
+   "fact": "НЕ УДАЛОСЬ ПРОВЕРИТЬ по первоисточнику: yandex.ru/support/metrica и правовые источники заблокированы egress-политикой, WebSearch исчерпан. Требование уведомления/согласия на обработку cookie и ПДн при использовании Метрики нужно проверить отдельно на актуальных материалах Яндекса и Роскомнадзора; в этом отчёте оно не подтверждено.",
+   "source": "https://yandex.ru/support/metrica (EGRESS_BLOCKED)"
+  },
+  {
+   "topic": "Telegram Bot API — текущая версия",
+   "fact": "Актуальная версия Telegram Bot API — 10.3, дата релиза 24 августа 2026 года.",
+   "source": "https://raw.githubusercontent.com/PaulSonOfLars/telegram-bot-api-spec/main/api.json"
+  },
+  {
+   "topic": "Telegram sendMessage — параметры",
+   "fact": "Обязательные поля sendMessage: chat_id (Integer или String в формате @username) и text. Ограничение текста — «1-4096 characters after entities parsing». Необязательные, релевантные для формы заявки: parse_mode (режим разметки, альтернатива — массив entities), link_preview_options (управление превью ссылок), disable_notification (беззвучная отправка), protect_content (запрет пересылки и сохранения), reply_markup, message_thread_id (для топиков в супергруппах), business_connection_id, allow_paid_broadcast (до 1000 сообщений/сек за 0.1 Telegram Stars за сообщение).",
+   "source": "https://raw.githubusercontent.com/PaulSonOfLars/telegram-bot-api-spec/main/api.json"
+  },
+  {
+   "topic": "Telegram Bot API — лимиты частоты",
+   "fact": "Документированные ориентиры: не более ~1 сообщения в секунду в один конкретный чат; при массовой рассылке — «30 messages per second or so»; «your bot will not be able to send more than 20 messages per minute to the same group». При превышении API возвращает 429 с полем retry_after; правильная стратегия — не выдумывать собственный троттлинг, а слать запросы и корректно обрабатывать 429 с автоповтором через retry_after. Точные лимиты Telegram намеренно не фиксирует и варьирует.",
+   "source": "https://raw.githubusercontent.com/grammyjs/website/main/site/docs/advanced/flood.md"
+  },
+  {
+   "topic": "Антиспам на Vercel — IP клиента",
+   "fact": "IP клиента в Route Handler берётся из заголовка x-forwarded-for либо хелпером `ipAddress(request)` из @vercel/functions. Важно: «Vercel overwrites this header and does not forward external IPs to prevent spoofing, unless a trusted proxy is enabled for Enterprise customers» — то есть подделать IP клиент не может, значение заголовка доверенное.",
+   "source": "https://vercel.com/docs/headers/request-headers"
+  },
+  {
+   "topic": "Антиспам на Vercel — rate limit без своей БД",
+   "fact": "Штатный способ rate-limit без внешнего хранилища — Vercel Firewall (WAF): `import { checkRateLimit } from '@vercel/firewall'; const { rateLimited } = await checkRateLimit('contact-form', { request }); if (rateLimited) return new Response(..., { status: 429 });`. По умолчанию бакет считается по IP клиента; можно задать свой rateLimitKey (например, email или составной ключ `${orgId}:${userId}`). Доступность WAF на Hobby не подтверждена — страница тарифов заблокирована.",
+   "source": "https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting-sdk"
+  },
+  {
+   "topic": "Антиспам на Vercel — BotID",
+   "fact": "Vercel предоставляет BotID (невидимая CAPTCHA). Подключение для Next.js: обернуть конфиг `export default withBotId(nextConfig)` из 'botid/next/config', в instrumentation-client.ts вызвать `initBotId({ protect: [{ path: '/api/contact', method: 'POST' }] })`, а в Route Handler проверить: `const verification = await checkBotId(); if (verification.isBot) return Response.json({ error: 'Access denied' }, { status: 403 });`. Есть checkLevel 'basic' | 'deepAnalysis' и распознавание «хороших» ботов через verifiedBotName.",
+   "source": "https://vercel.com/docs/botid/get-started"
+  },
+  {
+   "topic": "Антиспам — хранилище состояния",
+   "fact": "Для собственного счётчика лимитов без полноценной БД у Vercel есть Global Config (бывший Edge Config) — низколатентное чтение прямо в proxy: `import { get } from '@vercel/global-config'; const tenant = await get(\\`tenant_${hostname}\\`)`. Он же используется в референс-архитектуре мультитенантности для маппинга hostname → бренд. Важно: счётчик в памяти процесса (обычный Map) на serverless ненадёжен — инстансы изолированы и завершаются (документирован даже хендлер process.on('SIGTERM')).",
+   "source": "https://vercel.com/docs/platforms/multi-tenant-platforms/concepts"
+  },
+  {
+   "topic": "Vercel Git — подключение репозитория",
+   "fact": "Репозиторий GitHub подключается либо через Dashboard (Add New Project → Import), либо через CLI: `vercel git connect` (с `--yes` для пропуска подтверждения), `vercel git ls`, `vercel git disconnect`. Программно — при создании проекта: `vercel.projects.createProject({ requestBody: { name, framework: 'nextjs', gitRepository: { repo: 'owner/repo', type: 'github' } } })`.",
+   "source": "https://vercel.com/docs/cli/git"
+  },
+  {
+   "topic": "Vercel Git — production и preview",
+   "fact": "После подключения Git-интеграции пуш в production-ветку даёт production-деплой, пуш в остальные ветки — preview-деплой. Из CLI это соответствует `vercel deploy` (preview) и `vercel deploy --prod` (production). Есть переменные окружения деплоя: VERCEL_GIT_PROVIDER, VERCEL_GIT_REPO_SLUG, VERCEL_GIT_REPO_OWNER, VERCEL_GIT_COMMIT_REF, VERCEL_GIT_COMMIT_SHA, VERCEL_GIT_COMMIT_MESSAGE и фреймворковые NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF, NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL.",
+   "source": "https://vercel.com/docs/environment-variables/system-environment-variables"
+  },
+  {
+   "topic": "Vercel Git — нужен ли vercel.json",
+   "fact": "vercel.json не обязателен: фреймворк Next.js определяется автоматически, а домены рекомендуется задавать в Project Settings, а не через устаревшее поле alias («defining these in Project Settings is now preferred»). vercel.json нужен только для явных настроек: regions/functionFailoverRegions, maxDuration, rewrites/headers, и управления автодеплоем — `{ \"git\": { \"deploymentEnabled\": false } }` отключает деплой любых веток (устаревший аналог — github.enabled), `{ \"github\": { \"autoAlias\": false } }` отключает preview-деплой при merge. В 2026 появилась и типизированная альтернатива vercel.ts: `import type { VercelConfig } from '@vercel/config/v1'`.",
+   "source": "https://vercel.com/docs/project-configuration/git-configuration"
+  },
+  {
+   "topic": "Vercel Git — переменные окружения по веткам",
+   "fact": "Переменные окружения можно задавать отдельно для production, preview и development, а также точечно для конкретной ветки preview: `vercel env add DATABASE_URL preview feature-branch`. Через API — поле target: ['production','preview'] и type: 'encrypted' | 'plain'.",
+   "source": "https://vercel.com/docs/environment-variables/manage-across-environments"
+  },
+  {
+   "topic": "Vercel Git — интеграция с CI",
+   "fact": "В 2026 событие GitHub Actions `deployment_status` объявлено устаревшим для Vercel: вместо него нужно использовать `repository_dispatch` с типом `vercel.deployment.success`, а URL деплоя брать из `github.event.client_payload.url` вместо `github.event.deployment_status.environment_url`.",
+   "source": "https://vercel.com/docs/git/vercel-for-github"
+  }
+ ],
+ "recommendations": [
+  "Стек: next@16.3.4 + react@19.x + typescript>=5.1 + tailwindcss@4.3.3, Node.js >= 20.9. Не закладывайтесь на webpack-конфиг — в 16 по умолчанию Turbopack; кастомный webpack-конфиг уронит сборку, откат только флагом --webpack.",
+  "Мультибрендовость: один проект Vercel + N доменов + один файл proxy.ts (НЕ middleware.ts). Схема: proxy читает request.headers.get('host'), сверяет со своей картой BRANDS (константа в коде — быстрее и надёжнее Global Config для 3 брендов) и делает NextResponse.rewrite на /_sites/<brand>/<path>. matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'].",
+  "Обязательно вычищайте входящие заголовки бренда перед установкой своих (requestHeaders.delete('x-brand') → set) — иначе клиент подделает бренд заголовком. Неизвестный Host должен отдавать 404, а не дефолтный бренд.",
+  "Учтите, что proxy работает ТОЛЬКО на Node.js runtime и runtime в нём неконфигурируем. Если по какой-то причине нужен edge — придётся остаться на устаревшем middleware.ts.",
+  "Если логика роутинга по Host статична (3 фиксированных домена), рассмотрите rewrites с условием has: [{type:'header', key:'host', value:'...'}] в vercel.json вместо proxy.ts — это дешевле по инвокациям функций (важно на Hobby) и работает на уровне Edge Network.",
+  "КРИТИЧНО, проверьте лично перед продажей клиенту: Vercel Hobby исторически запрещает коммерческое использование, и клиентские сайты на нём рискуют быть приостановлены. Я НЕ смог процитировать Fair Use Policy — vercel.com заблокирован egress-политикой этой сессии, а WebSearch исчерпан. Откройте vercel.com/docs/limits/fair-use-guidelines и раздел тарифов вручную и зафиксируйте формулировку до запуска.",
+  "Для трёх клиентских сайтов закладывайте Pro сразу: это снимает вопрос Fair Use, даёт rollback, WAF/rate limiting и командный доступ. Точную цену Pro возьмите на странице тарифов — я её не подтвердил.",
+  "Для 152-ФЗ: у Vercel Functions нет региона в РФ (во всей документации фигурируют только iad1/sfo1/pdx1/cle1/hnd1/cdg1/lhr1/dub1/fra1). Если формы собирают ПДн граждан РФ, первичную запись делайте в российское хранилище: принимайте заявку на своём VPS/хостинге в РФ либо шлите её напрямую из браузера на российский эндпоинт, а Vercel оставляйте только статикой. Telegram Bot API как единственный приёмник заявок 152-ФЗ не закрывает.",
+  "Отдельно проверьте доступность vercel.app и *.vercel-dns.com из РФ — я не смог собрать данные о блокировках/замедлениях Роскомнадзора 2025–2026 (все новостные источники заблокированы). Практическая страховка: НИКОГДА не давайте клиенту vercel.app-адрес как рабочий, всегда привяжите собственный домен, и заранее подготовьте план миграции на российский хостинг (проект на Next.js в standalone-режиме переносится в Docker).",
+  "Шрифты: все шесть кандидатов (Montserrat, Manrope, Unbounded, Onest, Golos Text, Rubik) подтверждённо имеют субсеты cyrillic и cyrillic-ext. Под геометрический гротеск логотипа лучше всего: Unbounded (дисплейный, wght 200–900) для заголовков/логотипа + Onest (wght 100–900, самый широкий набор субсетов) или Manrope (wght 200–800) для текста. Golos Text берите осторожно — его ось начинается с 400, тонких начертаний нет.",
+  "Подключайте шрифты только через next/font/google — он скачивает файлы на этапе сборки и раздаёт их со своего домена, запросов к Google из браузера не будет («No requests are sent to Google by the browser»). Никаких <link> на fonts.googleapis.com.",
+  "Обязательно указывайте subsets: ['cyrillic','latin'] — без явных subsets при включённом preload Next.js выдаст предупреждение и не сгенерирует корректный preload. Используйте вариативные версии без weight, задавайте variable: '--font-display' и подключайте в Tailwind v4 через @theme { --font-display: var(--font-display); } — это даст утилиту font-display без tailwind.config.js.",
+  "Tailwind v4 настраивайте CSS-first: одна строка @import \"tailwindcss\" плюс @theme с токенами каждого бренда. Для трёх брендов удобнее всего один общий набор утилит и три набора CSS-переменных, переключаемых по data-brand на <html> — тогда бренд меняет тему без пересборки и без трёх конфигов. Не забудьте @tailwindcss/postcss и уберите autoprefixer/postcss-import.",
+  "Метрика: три счётчика (по одному на бренд), ID выбирается по бренду из того же resolveBrand. Скрипт mc.yandex.ru/metrika/tag.js через next/script strategy=\"afterInteractive\", параметры clickmap/trackLinks/accurateTrackBounce/webvisor/defer, и обязательный ручной ym(ID,'hit',url) на смену маршрута через usePathname/useSearchParams — иначе SPA-переходы не попадут в статистику. Можно взять готовый @artginzburg/next-ym (v1.3.7) — он умеет App Router и автотрекинг SPA из коробки.",
+  "Cookie-баннер под 152-ФЗ я не подтвердил первоисточником (yandex.ru заблокирован). Сверьтесь с актуальными требованиями до запуска; практический минимум — уведомление об использовании cookie и ссылка на политику обработки ПДн, а форма заявки должна иметь чекбокс согласия с ссылкой на политику.",
+  "Telegram: Route Handler app/api/lead/route.ts, POST на https://api.telegram.org/bot<TOKEN>/sendMessage с chat_id и text. Токен и chat_id — только в Environment Variables Vercel (без NEXT_PUBLIC_), три разных chat_id по брендам. Текст держите в пределах 4096 символов.",
+  "parse_mode: берите 'HTML' — он требует экранирования всего трёх символов (& < >), тогда как MarkdownV2 требует экранировать полтора десятка и легко ломается на данных из формы. И всегда экранируйте пользовательский ввод перед вставкой в разметку.",
+  "Рейт-лимиты Telegram: ~1 сообщение/сек в один чат, ~30/сек суммарно, 20/мин в одну группу. Не троттлите заранее — обрабатывайте 429 и повторяйте через retry_after. Если Telegram упал, заявка не должна теряться: отвечайте пользователю успехом только после 200 от API, либо дублируйте заявку на почту.",
+  "Антиспам без базы: комбинируйте три слоя — (1) honeypot-поле, скрытое CSS, плюс проверка времени заполнения формы (submit быстрее 2-3 секунд = бот); (2) Vercel BotID (withBotId + initBotId + checkBotId в хендлере, 403 для ботов); (3) checkRateLimit из @vercel/firewall по IP. Счётчик в памяти функции (Map) не работает — serverless-инстансы изолированы и умирают.",
+  "IP клиента берите через ipAddress(request) из @vercel/functions или заголовок x-forwarded-for — Vercel перезаписывает его сам и не пробрасывает внешние значения, поэтому подделка IP невозможна и ключ rate-limit надёжен.",
+  "Деплой: один репозиторий → один проект Vercel через Dashboard «Add New Project → Import». vercel.json не обязателен; добавьте его только если нужны regions, maxDuration для /api/lead или host-based rewrites. Пуш в main = production, любая другая ветка = preview-деплой автоматически.",
+  "Домены добавляйте в Project Settings → Domains (три апекса + три www с редиректом на апекс). Поле alias в vercel.json устарело — не используйте. Проверьте лимит доменов на вашем тарифе: я его не подтвердил из-за блокировки страницы лимитов.",
+  "Если будете гонять e2e-тесты в GitHub Actions после деплоя — сразу пишите триггер repository_dispatch с типом vercel.deployment.success и URL из client_payload.url: старое событие deployment_status у Vercel объявлено устаревшим.",
+  "Что осталось проверить вручную (блокеры этой сессии): Fair Use Policy и коммерция на Hobby; лимиты Hobby (bandwidth, invocations); цена Pro; полный список регионов Vercel; доступность Vercel из РФ и блокировки РКН 2025–2026; официальный сниппет и требования Яндекс.Метрики по 152-ФЗ. Все шесть пунктов упёрлись в egress-блокировку доменов и исчерпанный лимит WebSearch, а не в отсутствие данных."
+ ],
+ "sources": [
+  "https://registry.npmjs.org/-/package/next/dist-tags",
+  "https://registry.npmjs.org/next/latest",
+  "https://registry.npmjs.org/react/latest",
+  "https://registry.npmjs.org/-/package/tailwindcss/dist-tags",
+  "https://registry.npmjs.org/tailwindcss/latest",
+  "https://github.com/vercel/next.js/releases/tag/v16.0.0",
+  "https://github.com/vercel/next.js/releases",
+  "https://raw.githubusercontent.com/vercel/next.js/canary/docs/01-app/02-guides/upgrading/version-16.mdx",
+  "https://raw.githubusercontent.com/vercel/next.js/canary/docs/01-app/03-api-reference/03-file-conventions/proxy.mdx",
+  "https://raw.githubusercontent.com/vercel/next.js/canary/docs/01-app/03-api-reference/02-components/font.mdx",
+  "https://raw.githubusercontent.com/vercel/next.js/canary/docs/01-app/02-guides/multi-tenant.mdx",
+  "https://raw.githubusercontent.com/tailwindlabs/tailwindcss.com/main/src/docs/theme.mdx",
+  "https://raw.githubusercontent.com/tailwindlabs/tailwindcss.com/main/src/docs/upgrade-guide.mdx",
+  "https://raw.githubusercontent.com/google/fonts/main/ofl/montserrat/METADATA.pb",
+  "https://raw.githubusercontent.com/google/fonts/main/ofl/manrope/METADATA.pb",
+  "https://raw.githubusercontent.com/google/fonts/main/ofl/unbounded/METADATA.pb",
+  "https://raw.githubusercontent.com/google/fonts/main/ofl/onest/METADATA.pb",
+  "https://raw.githubusercontent.com/google/fonts/main/ofl/golostext/METADATA.pb",
+  "https://raw.githubusercontent.com/google/fonts/main/ofl/rubik/METADATA.pb",
+  "https://raw.githubusercontent.com/PaulSonOfLars/telegram-bot-api-spec/main/api.json",
+  "https://raw.githubusercontent.com/grammyjs/website/main/site/docs/advanced/flood.md",
+  "https://github.com/artginzburg/next-ym",
+  "https://registry.npmjs.org/-/v1/search?text=yandex%20metrica%20next",
+  "https://vercel.com/docs/domains/set-up-custom-domain",
+  "https://vercel.com/docs/rest-api/projects/add-a-domain-to-a-project",
+  "https://vercel.com/docs/rest-api/errors",
+  "https://vercel.com/docs/platforms/examples/multi-tenant-template",
+  "https://vercel.com/docs/platforms/multi-tenant-platforms/middleware-and-routing",
+  "https://vercel.com/docs/platforms/multi-tenant-platforms/concepts",
+  "https://vercel.com/docs/platforms/multi-tenant-platforms/preview-url-prefixes",
+  "https://vercel.com/docs/project-configuration/vercel-json",
+  "https://vercel.com/docs/project-configuration/vercel-ts",
+  "https://vercel.com/docs/project-configuration/git-configuration",
+  "https://vercel.com/docs/functions/configuring-functions/region",
+  "https://vercel.com/docs/environment-variables/system-environment-variables",
+  "https://vercel.com/docs/environment-variables/manage-across-environments",
+  "https://vercel.com/docs/headers/request-headers",
+  "https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting-sdk",
+  "https://vercel.com/docs/botid/get-started",
+  "https://vercel.com/docs/botid/advanced-configuration",
+  "https://vercel.com/docs/cli/git",
+  "https://vercel.com/docs/cli/domains",
+  "https://vercel.com/docs/cli/buy",
+  "https://vercel.com/docs/git/vercel-for-github",
+  "https://vercel.com/docs/functions/functions-api-reference/vercel-functions-package",
+  "https://vercel.com/docs/limits/fair-use-guidelines (EGRESS_BLOCKED — не проверено)",
+  "https://vercel.com/docs/plans/hobby (EGRESS_BLOCKED — не проверено)",
+  "https://vercel.com/docs/regions (EGRESS_BLOCKED — не проверено)",
+  "https://yandex.ru/support/metrica (EGRESS_BLOCKED — не проверено)",
+  "https://core.telegram.org/bots/api (EGRESS_BLOCKED — не проверено)",
+  "https://fonts.google.com (EGRESS_BLOCKED — не проверено)",
+  "https://nextjs.org (EGRESS_BLOCKED — не проверено)",
+  "https://tailwindcss.com (EGRESS_BLOCKED — не проверено)"
+ ]
+}
