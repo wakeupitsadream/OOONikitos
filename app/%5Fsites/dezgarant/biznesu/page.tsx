@@ -76,7 +76,7 @@ export default function BusinessPage() {
             <div className="flex items-start gap-4">
               <AlertTriangle className="mt-1 size-6 shrink-0 text-[var(--warn)]" aria-hidden="true" />
               <div>
-                <p className="display-md">Как часто нужны обработки</p>
+                <h3 className="display-md">Как часто нужны обработки</h3>
                 <p className="mt-3 text-[0.9375rem] text-fg-muted">{FREQUENCY_NOTE}</p>
               </div>
             </div>
@@ -90,7 +90,7 @@ export default function BusinessPage() {
           <SectionHead
             eyebrow="Расчёт обслуживания"
             title="Сколько стоит договор на ваш объект"
-            lead="Ни одна служба в Оренбурге не публикует абонентские тарифы. Мы показываем — вместе с нормой, на которой основана частота визитов."
+            lead="Ни одна служба в Оренбурге не публикует абонентские тарифы. Мы показываем — и объясняем, какая норма обязывает ваш объект проводить обработки и как мы строим график."
           />
         </Reveal>
         <Reveal delay={80} className="mt-8">
@@ -108,7 +108,7 @@ export default function BusinessPage() {
               lead="Комплект собирается по ходу обслуживания — его не нужно готовить перед проверкой."
             />
             <p className="mt-6 text-sm text-fg-subtle">
-              Образцы договора, акта и журнала пришлём по запросу вместе с расчётом.
+              Состав договора и форму акта обсудим на обследовании объекта.
             </p>
           </Reveal>
           <Reveal delay={80}>
@@ -166,7 +166,7 @@ export default function BusinessPage() {
               service="Договор на обслуживание"
               withTask
               fallbackPhone={DEZGARANT_PHONE}
-              title="Запросить договор"
+              title="Данные для расчёта"
               lead="Перезвоним в рабочее время и согласуем обследование объекта."
               submitLabel="Запросить договор"
             />

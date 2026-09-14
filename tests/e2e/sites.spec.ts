@@ -232,6 +232,35 @@ test.describe('Роутинг по брендам', () => {
     expect(dezTitle).not.toBe(remontTitle);
   });
 
+  test('брендовый домен не отдаёт чужой бренд по ?site= и cookie', async ({ request }) => {
+    // Next пропускает rewrite, если его destination не существует, и идёт к
+    // следующему правилу. Без условия missing:host dezgarant56.ru/portfolio?site=remont
+    // отдавал бы страницу Ремонта на домене ДезГаранта.
+    const host = 'dezgarant56.vercel.app';
+    const foreign = await request.get(url('/portfolio', 'remont'), { headers: { host } });
+    expect(foreign.status(), 'чужая страница на брендовом домене — 404').toBe(404);
+
+    const own = await request.get('/uslugi', { headers: { host, cookie: 'site=remont' } });
+    expect(own.status()).toBe(200);
+    expect(await own.text()).toContain('ДезГарант');
+  });
+
+  test('переключатель бренда не уводит на чужой домен', async ({ request, baseURL }) => {
+    // Важен хост редиректа, а не подстрока: «/%09/evil.com» остаётся путём на нашем домене.
+    // Локальный сервер называет себя то localhost, то 127.0.0.1 — оба свои.
+    const ownOrigin = new URL(baseURL ?? 'http://127.0.0.1').origin;
+    const ownHosts = ['localhost', '127.0.0.1', new URL(ownOrigin).hostname];
+    for (const evil of ['/\\evil.com', '/%09/evil.com', '//evil.com', 'https://evil.com', '/\\/evil.com']) {
+      const response = await request.get(`/api/site?to=remont&to_path=${encodeURIComponent(evil)}`, {
+        maxRedirects: 0,
+      });
+      expect(response.status()).toBe(307);
+      const location = response.headers()['location'] ?? '';
+      const target = new URL(location, ownOrigin);
+      expect(ownHosts, `to_path=${evil} → ${location}`).toContain(target.hostname);
+    }
+  });
+
   test('переключатель бренда запоминает выбор в cookie', async ({ page, context }) => {
     await page.goto('/api/site?to=remont', { waitUntil: 'load' });
     const cookies = await context.cookies();

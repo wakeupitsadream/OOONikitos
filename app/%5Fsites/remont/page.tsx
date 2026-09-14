@@ -49,20 +49,20 @@ function roomsOf(ids: string[]): Room[] {
 
 /** Типовые объекты собраны из тех же комнат, что предлагает калькулятор. */
 const TYPICAL_OBJECTS = [
-  { id: 'room', label: 'Одна комната', composition: 'комната 18 м²', rooms: ['room-medium'] },
+  { id: 'room', label: 'Одна комната', composition: 'комната 18 м²', rooms: ['room-medium'] },
   {
     id: 'flat-1',
     label: 'Однокомнатная квартира',
-    composition: 'комната 18 м² + кухня 10 м² + прихожая 6 м²',
+    composition: 'комната 18 м² + кухня 10 м² + прихожая 6 м²',
     rooms: ['room-medium', 'kitchen', 'hall'],
   },
   {
     id: 'flat-2',
     label: 'Двухкомнатная квартира',
-    composition: 'комнаты 18 и 12 м² + кухня 10 м² + прихожая 6 м²',
+    composition: 'комнаты 18 и 12 м² + кухня 10 м² + прихожая 6 м²',
     rooms: ['room-medium', 'room-small', 'kitchen', 'hall'],
   },
-  { id: 'bath', label: 'Санузел', composition: 'санузел 4 м²', rooms: ['bath'] },
+  { id: 'bath', label: 'Санузел', composition: 'санузел 4 м²', rooms: ['bath'] },
 ];
 
 function timingRows() {
@@ -87,7 +87,7 @@ function jsonLd() {
   return [
     {
       '@context': 'https://schema.org',
-      '@type': 'HomeAndConstructionBusiness',
+      '@type': 'Organization',
       '@id': `${origin}#business`,
       name: 'Бриллиант Ремонт',
       description:
@@ -326,7 +326,12 @@ export default function RemontHome() {
           />
         </Reveal>
         <Reveal delay={80} className="mt-8">
-          <div className="overflow-x-auto rounded-[var(--radius-md)] border border-border">
+          <div
+            tabIndex={0}
+            role="region"
+            aria-label="Сроки по типовым объектам"
+            className="overflow-x-auto rounded-[var(--radius-md)] border border-border"
+          >
             <table className="w-full min-w-[34rem] border-collapse text-left text-[0.9375rem]">
               <thead>
                 <tr className="border-b border-border bg-surface">

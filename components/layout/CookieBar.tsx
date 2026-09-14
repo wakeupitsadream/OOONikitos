@@ -42,7 +42,8 @@ export function CookieBar({ enabled }: { enabled: boolean }) {
     <div
       role="region"
       aria-label="Уведомление об использовании cookie"
-      className="fixed inset-x-3 bottom-20 z-[55] rounded-[var(--radius-md)] border border-border bg-surface p-4 shadow-[var(--shadow)] sm:inset-x-auto sm:right-4 sm:bottom-4 sm:max-w-sm lg:bottom-4"
+      // До lg внизу лежит полоса связи (~3.6rem + безопасная зона) — плашка встаёт над ней
+      className="fixed inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] z-[55] rounded-[var(--radius-md)] border border-border bg-surface p-4 shadow-[var(--shadow)] sm:inset-x-auto sm:right-4 sm:max-w-sm lg:bottom-4"
     >
       <p className="text-sm text-fg-muted">
         Мы используем cookie и сервис веб-аналитики, чтобы сайт работал корректно. Подробности —

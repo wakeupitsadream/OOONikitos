@@ -102,19 +102,48 @@ test('цена округляется вверх до 50 ₽', () => {
   assert.equal(r.priceTo % 50, 0);
 });
 
+/** Момент по времени Оренбурга (UTC+5): часы считаются в поясе компании, не посетителя. */
+function orenburg(hour, minute = 0) {
+  return new Date(Date.UTC(2026, 8, 11, hour - 5, minute));
+}
+
 test('ближайший выезд зависит от часа и не использует случайность', () => {
-  const morning = new Date(2026, 8, 11, 9, 0);
-  const evening = new Date(2026, 8, 11, 19, 0);
-  assert.equal(nextVisitLabel(morning), 'сегодня');
-  assert.equal(nextVisitLabel(evening), 'завтра с 9:00');
-  assert.equal(nextVisitLabel(morning), nextVisitLabel(new Date(2026, 8, 11, 9, 30)));
+  assert.equal(nextVisitLabel(orenburg(9)), 'сегодня');
+  assert.equal(nextVisitLabel(orenburg(19)), 'завтра с 9:00');
+  assert.equal(nextVisitLabel(orenburg(9)), nextVisitLabel(orenburg(9, 30)));
+});
+
+test('час берётся по Оренбургу, а не по часам посетителя', () => {
+  // 13:00 по Москве = 15:00 в Оренбурге — «сегодня» уже не обещаем
+  const moscowAfternoon = new Date(Date.UTC(2026, 8, 11, 10, 0));
+  assert.equal(nextVisitLabel(moscowAfternoon), 'завтра с 9:00');
+  assert.equal(nextVisitLabel(moscowAfternoon, 'Europe/Moscow'), 'сегодня');
 });
 
 test('слоты выезда сужаются к вечеру', () => {
-  const morning = visitSlots(new Date(2026, 8, 11, 9, 0));
-  const night = visitSlots(new Date(2026, 8, 11, 22, 0));
+  const morning = visitSlots(orenburg(9));
+  const night = visitSlots(orenburg(22));
   assert.ok(morning.length > night.length);
   assert.ok(night.every((slot) => !slot.id.startsWith('today')));
+});
+
+test('метка и слоты не противоречат друг другу после 15:00', () => {
+  for (const hour of [15, 15.5, 16, 20]) {
+    const now = orenburg(Math.floor(hour), hour % 1 ? 30 : 0);
+    assert.equal(nextVisitLabel(now), 'завтра с 9:00');
+    assert.ok(visitSlots(now).every((slot) => !slot.id.startsWith('today')), `час ${hour}`);
+  }
+  const before = orenburg(14, 59);
+  assert.equal(nextVisitLabel(before), 'сегодня');
+  assert.ok(visitSlots(before).some((slot) => slot.id.startsWith('today')));
+});
+
+test('нечисловая площадь не превращается в NaN ₽', () => {
+  const r = calcDezgarant({ problem: 'gryzuny', object: 'warehouse', amount: Number.NaN }, RATES);
+  assert.ok(Number.isFinite(r.priceFrom) && r.priceFrom > 0);
+  assert.ok(Number.isFinite(r.priceTo) && r.priceTo >= r.priceFrom);
+  const missing = calcDezgarant({ problem: 'gryzuny', object: 'warehouse' }, RATES);
+  assert.equal(missing.priceFrom, r.priceFrom);
 });
 
 /* -------------------------- Бриллиант Ремонт -------------------------- */

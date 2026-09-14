@@ -17,26 +17,52 @@ type MobileNavProps = {
 export function MobileNav({ site, nav, phone }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const openerRef = useRef<HTMLButtonElement>(null);
   const config = SITES[site];
 
   useEffect(() => {
     if (!open) return;
+    const panel = panelRef.current;
+    const opener = openerRef.current;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
+      if (event.key === 'Escape') {
+        setOpen(false);
+        return;
+      }
+      // Ловушка фокуса: Tab ходит по кругу внутри шторки, а не по странице под ней
+      if (event.key === 'Tab' && panel) {
+        const focusable = panel.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const active = document.activeElement;
+        if (event.shiftKey && (active === first || active === panel)) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && active === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
     };
     document.addEventListener('keydown', onKey);
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    panelRef.current?.focus();
+    panel?.focus();
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = previousOverflow;
+      // Фокус возвращается на кнопку-гамбургер, а не падает на <body>
+      opener?.focus();
     };
   }, [open]);
 
   return (
     <>
       <button
+        ref={openerRef}
         type="button"
         onClick={() => setOpen(true)}
         className="grid size-11 place-items-center rounded-[var(--radius-sm)] border border-border-strong text-fg lg:hidden"

@@ -3,7 +3,12 @@ import { ArrowRight, Check, MapPin, X } from 'lucide-react';
 import { COMPANY, LICENSE } from '@/content/company';
 import { DEZGARANT_PHONE } from '@/content/dezgarant/contacts';
 import { FEATURED_SERVICES } from '@/content/dezgarant/services';
-import { DEZGARANT_RATES, PRICE_STATUS } from '@/content/dezgarant/prices';
+import {
+  DEZGARANT_RATES,
+  PRICE_STATUS,
+  GUARANTEE_STATUS,
+  DEFAULT_GUARANTEE_DAYS,
+} from '@/content/dezgarant/prices';
 import { DEZGARANT_FAQ, PRICE_INCLUDES, PROCESS_STEPS, SEASON_CALENDAR, AREA_CITIES } from '@/content/dezgarant/faq';
 import { LICENSE_POINTS } from '@/content/dezgarant/license';
 import { jsonLdScript } from '@/lib/seo';
@@ -27,7 +32,7 @@ function jsonLd() {
   return [
     {
       '@context': 'https://schema.org',
-      '@type': 'LocalBusiness',
+      '@type': 'Organization',
       '@id': `${origin}#business`,
       name: 'ДезГарант',
       description:
@@ -168,27 +173,38 @@ export default function DezgarantHome() {
               </li>
             ))}
           </ul>
+          {PRICE_STATUS === 'draft' ? (
+            <p className="mt-4 text-sm text-fg-subtle">
+              Состав услуги, как и цены, владелец ещё уточняет — пометка «уточняется» относится и к
+              этому списку.
+            </p>
+          ) : null}
         </Reveal>
       </Section>
 
-      {/* Гарантия и деликатность */}
+      {/* Гарантия и документы */}
       <Section id="garantiya">
         <div className="grid gap-6 md:grid-cols-3">
           <Reveal>
             <Card className="h-full">
               <Stat
-                value={pluralize(90, 'день', 'дня', 'дней')}
+                value={pluralize(DEFAULT_GUARANTEE_DAYS, 'день', 'дня', 'дней')}
                 label="Гарантия на основные услуги"
-                hint="Вернулись вредители — приезжаем повторно бесплатно, а не со скидкой"
+                hint={
+                  GUARANTEE_STATUS === 'draft'
+                    ? 'Срок уточняется владельцем и фиксируется в договоре. Вернулись вредители — приезжаем повторно по гарантии'
+                    : 'Вернулись вредители — приезжаем повторно бесплатно, а не со скидкой'
+                }
               />
             </Card>
           </Reveal>
           <Reveal delay={80}>
             <Card className="h-full">
+              {/* TODO_OWNER: «машина без надписей» — до подтверждения показываем документы */}
               <Stat
-                value="Без надписей"
-                label="Деликатный выезд"
-                hint="Машина без брендирования, специалист без формы — по клопам это стандарт"
+                value="Договор и акт"
+                label="На каждую обработку"
+                hint="В акте — применённые средства и дата: документ для вас и для проверки"
               />
             </Card>
           </Reveal>
@@ -249,17 +265,19 @@ export default function DezgarantHome() {
               title="Оренбург и область"
               lead="Работаем в городе и выезжаем по области. Стоимость выезда за пределы Оренбурга считается по километражу и называется до выезда."
             />
-            <ul className="mt-6 flex flex-wrap gap-2">
-              {AREA_CITIES.map((city) => (
-                <li
-                  key={city}
-                  className="flex items-center gap-1.5 rounded-[var(--radius-xs)] bg-surface-2 px-3 py-1.5 text-sm"
-                >
-                  <MapPin className="size-3.5 text-accent-ink" aria-hidden="true" />
-                  {city}
-                </li>
-              ))}
-            </ul>
+            {AREA_CITIES.length > 0 ? (
+              <ul className="mt-6 flex flex-wrap gap-2">
+                {AREA_CITIES.map((city) => (
+                  <li
+                    key={city}
+                    className="flex items-center gap-1.5 rounded-[var(--radius-xs)] bg-surface-2 px-3 py-1.5 text-sm"
+                  >
+                    <MapPin className="size-3.5 text-accent-ink" aria-hidden="true" />
+                    {city}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </Reveal>
           <Reveal delay={80}>
             <div className="rounded-[var(--radius-md)] border border-border bg-surface p-6">

@@ -155,7 +155,7 @@ export default async function RemontServicePage({ params }: PageProps) {
             <Card className="h-full" clipped>
               <div className="flex items-center gap-3">
                 <Lightbulb className="size-5 shrink-0 text-accent-ink" aria-hidden="true" />
-                <p className="display-md">Зачем это нужно</p>
+                <h3 className="display-md">Зачем это нужно</h3>
               </div>
               <p className="mt-4 text-[0.9375rem] text-fg-muted">{service.why}</p>
               {rate ? (

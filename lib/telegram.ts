@@ -29,12 +29,16 @@ export function truncate(text: string, limit: number = TELEGRAM_TEXT_LIMIT): str
   return `${text.slice(0, limit - 1)}…`;
 }
 
-/** Сообщение для Telegram: подписи наши, значения — экранированные. */
+/** Предел одного значения до экранирования: обрезка после него могла бы разрубить сущность. */
+const FIELD_LIMIT = 1000;
+
+/** Сообщение для Telegram: подписи наши, значения — обрезанные и экранированные. */
 export function buildLeadMessage(lead: Lead, siteId: SiteId): string {
   const header = `<b>Новая заявка — ${escapeHtml(SITES[siteId].shortName)}</b>`;
   const lines = leadFields(lead).map(
-    (field) => `<b>${escapeHtml(field.label)}:</b> ${escapeHtml(field.value)}`,
+    (field) => `<b>${escapeHtml(field.label)}:</b> ${escapeHtml(truncate(field.value, FIELD_LIMIT))}`,
   );
+  // Общий предел — страховка: 6 полей по 1000 знаков в &amp; не превысят его
   return truncate([header, ...lines].join('\n'));
 }
 

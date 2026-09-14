@@ -69,7 +69,12 @@ export default function RemontPricesPage() {
         </Reveal>
 
         <Reveal delay={80} className="mt-8">
-          <div className="overflow-x-auto rounded-[var(--radius-md)] border border-border">
+          <div
+            tabIndex={0}
+            role="region"
+            aria-label="Расценки за квадратный метр"
+            className="overflow-x-auto rounded-[var(--radius-md)] border border-border"
+          >
             <table className="w-full min-w-[38rem] border-collapse text-left text-[0.9375rem]">
               <caption className="sr-only">
                 Стоимость работ по отделке стен за квадратный метр, норма выработки и пауза на
@@ -101,7 +106,10 @@ export default function RemontPricesPage() {
                       {formatPrice(rate.pricePerM2)}
                       {rate.status === 'draft' ? <DraftMark /> : null}
                     </td>
-                    <td className="tabular px-4 py-3 whitespace-nowrap">{rate.m2PerDay} м²</td>
+                    <td className="tabular px-4 py-3 whitespace-nowrap">
+                      {rate.m2PerDay} м²
+                      {rate.status === 'draft' ? <DraftMark /> : null}
+                    </td>
                     <td className="tabular px-4 py-3 whitespace-nowrap">
                       {rate.dryingDays > 0
                         ? pluralize(rate.dryingDays, 'день', 'дня', 'дней')
@@ -137,14 +145,18 @@ export default function RemontPricesPage() {
             <Card clipped className="max-w-3xl">
               <div className="flex items-center gap-3">
                 <Info className="size-5 shrink-0 text-accent-ink" aria-hidden="true" />
-                <p className="display-md">Откуда эти цифры</p>
+                <h3 className="display-md">Откуда эти цифры</h3>
               </div>
               <p className="mt-4 text-[0.9375rem] text-fg-muted">
                 Это рыночный ориентир, а не утверждённый прайс — поэтому рядом с каждой ставкой
                 стоит пометка «уточняется». Поштучных расценок на штукатурку, шпаклёвку, покраску
                 и обои по Оренбургу в открытых источниках нет: конкуренты публикуют только общие
-                ставки отделки «под ключ» — 2 490–3 490 ₽ за м² пола. Из них и выведены значения
+                ставки отделки «под ключ» — 2 490–3 490 ₽ за м² пола. Из них и выведены значения
                 в таблице.
+              </p>
+              <p className="mt-3 text-[0.9375rem] text-fg-muted">
+                Норма выработки и паузы на сушку — тоже ориентир: реальный темп подтверждает
+                бригада после замера, и срок записывается в договор вместе со сметой.
               </p>
               <p className="mt-3 text-[0.9375rem] text-fg-muted">
                 Точная стоимость называется после замера и фиксируется в договоре. Она не растёт,

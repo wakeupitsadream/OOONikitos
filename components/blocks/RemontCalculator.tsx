@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Plus, Ruler, Trash2 } from 'lucide-react';
 import {
   calcRemont,
@@ -100,6 +100,12 @@ export function RemontCalculator({
   const [works, setWorks] = useState<WorkId[]>(initialWorks);
   const [condition, setCondition] = useState<'new' | 'normal' | 'bad'>('normal');
   const [showForm, setShowForm] = useState(false);
+  // После нажатия «Записаться» панель с результатом заменяется формой:
+  // переводим фокус на неё, иначе он теряется вместе с нажатой кнопкой.
+  const formPanelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (showForm) formPanelRef.current?.focus();
+  }, [showForm]);
 
   const addPreset = (preset: (typeof ROOM_PRESETS)[number]) => {
     setRooms((prev) => [...prev, draftFromPreset(preset, nextId())]);
@@ -272,7 +278,7 @@ export function RemontCalculator({
                   key={preset.id}
                   type="button"
                   onClick={() => addPreset(preset)}
-                  className="inline-flex items-center gap-1.5 rounded-[var(--radius-xs)] border border-border-strong bg-surface px-3 py-2 text-sm font-medium text-fg-muted transition-colors hover:border-accent hover:text-fg"
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-xs)] border border-border-strong bg-surface px-3 py-2 text-sm font-medium text-fg-muted transition-colors hover:border-accent hover:text-fg"
                 >
                   <Plus className="size-3.5 shrink-0" aria-hidden="true" />
                   {preset.label}
@@ -281,7 +287,7 @@ export function RemontCalculator({
               <button
                 type="button"
                 onClick={addCustom}
-                className="inline-flex items-center gap-1.5 rounded-[var(--radius-xs)] border border-dashed border-border-strong px-3 py-2 text-sm font-medium text-fg-muted transition-colors hover:border-accent hover:text-fg"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-xs)] border border-dashed border-border-strong px-3 py-2 text-sm font-medium text-fg-muted transition-colors hover:border-accent hover:text-fg"
               >
                 <Ruler className="size-3.5 shrink-0" aria-hidden="true" />
                 Свои размеры
@@ -306,7 +312,7 @@ export function RemontCalculator({
                       <span className="block">
                         <span className="block font-semibold text-fg">{rate.label}</span>
                         <span className="tabular block text-sm text-fg-subtle">
-                          {formatPrice(rate.pricePerM2)} / м²
+                          {formatPrice(rate.pricePerM2)}/м²
                           {rate.status === 'draft' ? <DraftMark /> : null}
                         </span>
                       </span>
@@ -340,7 +346,12 @@ export function RemontCalculator({
         </div>
 
         {/* Результат */}
-        <div className="border-t border-border bg-bg-deep p-5 md:p-8 lg:border-l lg:border-t-0">
+        <div
+          ref={formPanelRef}
+          tabIndex={-1}
+          aria-live="polite"
+          className="border-t border-border bg-bg-deep p-5 md:p-8 outline-none lg:border-l lg:border-t-0"
+        >
           {showForm ? (
             <LeadForm
               site="remont"

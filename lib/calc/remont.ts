@@ -82,7 +82,8 @@ function roundUp(value: number, step = 500): number {
 
 export function calcRemont(input: CalcRemontInput, rates: WorkRate[]): CalcRemontResult {
   const wallArea = Math.round(totalWallArea(input.rooms) * 10) / 10;
-  const factor = CONDITION_FACTOR[input.condition];
+  // Неизвестное состояние (например, из старой ссылки) — считаем как обычное
+  const factor = CONDITION_FACTOR[input.condition] ?? CONDITION_FACTOR.normal;
   const selected = rates.filter((rate) => input.works.includes(rate.id));
 
   const items = selected.map((rate) => ({

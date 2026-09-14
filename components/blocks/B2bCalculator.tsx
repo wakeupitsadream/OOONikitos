@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, FileCheck, PiggyBank, Repeat } from 'lucide-react';
 import { calcB2b } from '@/lib/calc/b2b';
 import { B2B_OBJECTS, B2B_RATES } from '@/content/dezgarant/prices';
@@ -23,11 +23,18 @@ export function B2bCalculator({ phone, className = '' }: B2bCalculatorProps) {
   const [objectId, setObjectId] = useState(B2B_OBJECTS[0].id);
   const [area, setArea] = useState('120');
   const [showForm, setShowForm] = useState(false);
+  // После нажатия «Записаться» панель с результатом заменяется формой:
+  // переводим фокус на неё, иначе он теряется вместе с нажатой кнопкой.
+  const formPanelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (showForm) formPanelRef.current?.focus();
+  }, [showForm]);
 
   const object = B2B_OBJECTS.find((item) => item.id === objectId) ?? B2B_OBJECTS[0];
 
   const result = useMemo(
-    () => calcB2b({ object, area: Number(area) || 0 }, B2B_RATES),
+    // max у input type=number сам ничего не ограничивает — зажимаем здесь
+    () => calcB2b({ object, area: Math.min(Math.max(Number(area) || 0, 0), 20000) }, B2B_RATES),
     [object, area],
   );
 
@@ -79,19 +86,24 @@ export function B2bCalculator({ phone, className = '' }: B2bCalculatorProps) {
           </div>
 
           <div className="mt-6 rounded-[var(--radius-sm)] border-l-2 border-accent bg-surface-2 px-4 py-3">
-            <p className="text-sm font-semibold">На чём основана частота</p>
+            <p className="text-sm font-semibold">Как планируем график для такого объекта</p>
             <p className="mt-1 text-sm text-fg-muted">{object.norm}</p>
           </div>
         </div>
 
-        <div className="border-t border-border bg-bg-deep p-6 md:p-8 lg:border-l lg:border-t-0">
+        <div
+          ref={formPanelRef}
+          tabIndex={-1}
+          aria-live="polite"
+          className="border-t border-border bg-bg-deep p-6 md:p-8 outline-none lg:border-l lg:border-t-0"
+        >
           {showForm ? (
             <LeadForm
               site="dezgarant"
               service={`Договор на обслуживание — ${object.label}`}
               details={details}
               fallbackPhone={phone}
-              title="Запросить договор"
+              title="Данные для расчёта"
               lead="Пришлём проект договора и график обработок под ваш объект."
               submitLabel="Запросить договор"
               className="border-0 bg-transparent p-0"
@@ -101,7 +113,7 @@ export function B2bCalculator({ phone, className = '' }: B2bCalculatorProps) {
               <p className="eyebrow text-fg-subtle">Абонентское обслуживание</p>
               <p className="display-lg mt-2 tabular">
                 {formatPrice(result.perMonth)}
-                <span className="text-lg font-semibold text-fg-subtle"> / мес</span>
+                <span className="text-lg font-semibold text-fg-subtle">/мес</span>
               </p>
               {result.status === 'draft' ? <DraftMark /> : null}
 
@@ -116,8 +128,8 @@ export function B2bCalculator({ phone, className = '' }: B2bCalculatorProps) {
                 <li className="flex items-start gap-3">
                   <PiggyBank className="mt-0.5 size-5 shrink-0 text-accent-ink" aria-hidden="true" />
                   <span>
-                    Экономия против разовых выездов — около{' '}
-                    <strong>{formatPrice(result.savedVsOneOff)}</strong> в год
+                    В абонементе выезд дешевле разового — точную разницу посчитаем по вашему
+                    объекту
                   </span>
                 </li>
                 <li className="flex items-start gap-3">

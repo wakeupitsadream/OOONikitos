@@ -18,12 +18,21 @@ const hits = new Map<string, number[]>();
 
 export type RateLimitResult = { allowed: boolean; retryAfterSec: number };
 
-/** Выбрасывает ключи, у которых не осталось попыток в окне. */
+/**
+ * Выбрасывает ключи, у которых не осталось попыток в окне. Если и после этого
+ * ключей больше предела (поток разных подставных адресов), удаляет самые
+ * старые: память не должна расти до конца окна.
+ */
 function prune(now: number): void {
   for (const [key, stamps] of hits) {
     const fresh = stamps.filter((stamp) => now - stamp < RATE_LIMIT_WINDOW_MS);
     if (fresh.length === 0) hits.delete(key);
     else hits.set(key, fresh);
+  }
+  if (hits.size > MAX_KEYS) {
+    const overflow = hits.size - MAX_KEYS;
+    // Map хранит порядок вставки: первые ключи — самые старые
+    for (const key of Array.from(hits.keys()).slice(0, overflow)) hits.delete(key);
   }
 }
 

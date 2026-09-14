@@ -136,17 +136,19 @@ export default function ContactsPage() {
               title={areaServed}
               lead="Работаем в городе и выезжаем по области. Стоимость выезда за пределы Оренбурга считается по километражу и называется до выезда, а не по факту."
             />
-            <ul className="mt-6 flex flex-wrap gap-2">
-              {AREA_CITIES.map((city) => (
-                <li
-                  key={city}
-                  className="flex items-center gap-1.5 rounded-[var(--radius-xs)] bg-surface-2 px-3 py-1.5 text-sm"
-                >
-                  <MapPin className="size-3.5 text-accent-ink" aria-hidden="true" />
-                  {city}
-                </li>
-              ))}
-            </ul>
+            {AREA_CITIES.length > 0 ? (
+              <ul className="mt-6 flex flex-wrap gap-2">
+                {AREA_CITIES.map((city) => (
+                  <li
+                    key={city}
+                    className="flex items-center gap-1.5 rounded-[var(--radius-xs)] bg-surface-2 px-3 py-1.5 text-sm"
+                  >
+                    <MapPin className="size-3.5 text-accent-ink" aria-hidden="true" />
+                    {city}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </Reveal>
           <Reveal delay={80}>
             <div className="rounded-[var(--radius-md)] border border-border bg-surface p-6">

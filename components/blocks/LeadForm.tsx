@@ -48,6 +48,7 @@ export function LeadForm({
   }, []);
   const [status, setStatus] = useState<Status>('idle');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formError, setFormError] = useState<string | null>(null);
   const [values, setValues] = useState({ name: '', phone: '', task: '', hp: '' });
 
   const update = (field: keyof typeof values) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -69,7 +70,14 @@ export function LeadForm({
     }
     if (!consent) nextErrors.consent = 'Нужно согласие на обработку персональных данных';
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
+    const firstInvalid = Object.keys(nextErrors)[0];
+    if (firstInvalid) {
+      // noValidate отключает браузерный переход к полю — делаем его сами,
+      // иначе на телефоне кнопка внизу «ничего не делает»: ошибки выше экрана.
+      const field = form.elements.namedItem(firstInvalid);
+      if (field instanceof HTMLElement) field.focus();
+      return;
+    }
 
     setStatus('sending');
     const taskText = withTask ? values.task.trim() : '';
@@ -85,7 +93,9 @@ export function LeadForm({
       page: typeof window !== 'undefined' ? window.location.pathname : '/',
       consent: true,
       hp: values.hp,
-      t: openedAt.current || Date.now(),
+      // 0 — «метки нет»: сервер не считает это подозрением. Подставлять Date.now()
+      // нельзя: тогда любая отправка выглядела бы мгновенной.
+      t: openedAt.current,
     };
 
     try {
@@ -96,6 +106,7 @@ export function LeadForm({
       });
       const data = (await response.json().catch(() => ({ ok: false }))) as {
         ok?: boolean;
+        error?: string;
         errors?: Record<string, string>;
       };
       if (response.ok && data.ok) {
@@ -107,8 +118,11 @@ export function LeadForm({
         return;
       }
       if (data.errors) setErrors(data.errors);
+      // Сервер объясняет отказ по-русски (лимит, сбой доставки) — показываем его слова
+      setFormError(typeof data.error === 'string' && data.error ? data.error : null);
       setStatus('error');
     } catch {
+      setFormError(null);
       setStatus('error');
     }
   }
@@ -141,7 +155,8 @@ export function LeadForm({
       ref={formRef}
       onSubmit={onSubmit}
       noValidate
-      className={`rounded-[var(--radius-md)] border border-border bg-surface p-6 md:p-7 ${className}`}
+      // ym-*: Вебвизор Метрики не записывает ввод и содержимое формы — здесь персональные данные
+      className={`ym-hide-content ym-disable-keys rounded-[var(--radius-md)] border border-border bg-surface p-6 md:p-7 ${className}`}
     >
       <p className="display-md">{title}</p>
       <p className="mt-2 text-[0.9375rem] text-fg-muted">{lead}</p>
@@ -218,7 +233,7 @@ export function LeadForm({
 
       {status === 'error' ? (
         <p role="alert" className="mt-4 text-sm text-[var(--danger)]">
-          Заявка не отправилась.{' '}
+          {formError ?? 'Заявка не отправилась.'}{' '}
           {fallbackPhone ? (
             <>
               Позвоните нам:{' '}

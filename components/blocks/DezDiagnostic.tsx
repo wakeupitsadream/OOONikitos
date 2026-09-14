@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Clock, RotateCcw, ShieldCheck, Truck } from 'lucide-react';
 import {
   calcDezgarant,
@@ -11,7 +11,7 @@ import {
   type ObjectId,
   type ProblemId,
 } from '@/lib/calc/dezgarant';
-import { DEZGARANT_RATES, PRICE_STATUS } from '@/content/dezgarant/prices';
+import { DEZGARANT_RATES, PRICE_STATUS, GUARANTEE_STATUS } from '@/content/dezgarant/prices';
 import { formatPrice, plural, pluralize } from '@/lib/plural';
 import { Button } from '@/components/ui/Button';
 import { Choice } from '@/components/ui/Field';
@@ -71,6 +71,12 @@ export function DezDiagnostic({ initialProblem, phone, className = '' }: DezDiag
   const [method, setMethod] = useState<Method>('cold');
   const [slot, setSlot] = useState('any');
   const [showForm, setShowForm] = useState(false);
+  // После нажатия «Записаться» панель с результатом заменяется формой:
+  // переводим фокус на неё, иначе он теряется вместе с нажатой кнопкой.
+  const formPanelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (showForm) formPanelRef.current?.focus();
+  }, [showForm]);
 
   const objectOptions = useMemo(
     () => (PLOT_ONLY.includes(problem) ? OBJECTS.filter((item) => item.id === 'plot') : OBJECTS),
@@ -84,7 +90,9 @@ export function DezDiagnostic({ initialProblem, phone, className = '' }: DezDiag
     const input: CalcInput = {
       problem,
       object: activeObject?.id ?? 'flat-2',
-      amount: needsAmount ? Number(amount) || 0 : undefined,
+      amount: needsAmount
+        ? Math.min(Math.max(Number(amount) || 0, 0), needsAmount === 'sotka' ? 200 : 5000)
+        : undefined,
       method,
     };
     return calcDezgarant(input, DEZGARANT_RATES);
@@ -224,7 +232,7 @@ export function DezDiagnostic({ initialProblem, phone, className = '' }: DezDiag
                   type="button"
                   aria-pressed={slot === item.id}
                   onClick={() => setSlot(item.id)}
-                  className={`rounded-[var(--radius-sm)] border px-4 py-2 text-sm font-medium transition-colors duration-150 ${
+                  className={`min-h-11 rounded-[var(--radius-sm)] border px-4 py-2 text-sm font-medium transition-colors duration-150 ${
                     slot === item.id
                       ? 'border-accent bg-accent/10 text-fg'
                       : 'border-border-strong text-fg-muted hover:border-accent'
@@ -238,7 +246,12 @@ export function DezDiagnostic({ initialProblem, phone, className = '' }: DezDiag
         </div>
 
         {/* Результат */}
-        <div className="border-t border-border bg-bg-deep p-6 md:p-8 lg:border-l lg:border-t-0">
+        <div
+          ref={formPanelRef}
+          tabIndex={-1}
+          aria-live="polite"
+          className="border-t border-border bg-bg-deep p-6 md:p-8 outline-none lg:border-l lg:border-t-0"
+        >
           {showForm ? (
             <LeadForm
               site="dezgarant"
@@ -277,7 +290,8 @@ export function DezDiagnostic({ initialProblem, phone, className = '' }: DezDiag
                   <span>
                     Работа на объекте — около {result.durationMin} минут. Вернуться в помещение
                     можно через {result.returnAfterHours}{' '}
-                    {plural(result.returnAfterHours, 'час', 'часа', 'часов')}.
+                    {plural(result.returnAfterHours, 'час', 'часа', 'часов')}. Точное время
+                    назовёт специалист — оно зависит от применённого средства.
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -286,8 +300,9 @@ export function DezDiagnostic({ initialProblem, phone, className = '' }: DezDiag
                     Гарантия{' '}
                     <strong>
                       {pluralize(result.guaranteeDays, 'день', 'дня', 'дней')}
-                    </strong>{' '}
-                    — если вредители вернутся, приедем повторно бесплатно.
+                    </strong>
+                    {GUARANTEE_STATUS === 'draft' ? <DraftMark /> : null} — если вредители
+                    вернутся, приедем повторно бесплатно. Срок фиксируем в договоре.
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -325,7 +340,7 @@ export function DezDiagnostic({ initialProblem, phone, className = '' }: DezDiag
 
               <p className="mt-4 text-sm text-fg-subtle">
                 Это ориентир по типовому объекту. Точную цену называем на осмотре и фиксируем
-                в договоре — доплат «за степень заражения» не будет.
+                в договоре — меняется она только вместе с объёмом работ и согласуется заранее.
               </p>
             </>
           )}

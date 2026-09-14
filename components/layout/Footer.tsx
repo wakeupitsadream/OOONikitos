@@ -55,13 +55,13 @@ export function Footer({
 
           <div>
             <p className="eyebrow mb-3 text-fg-subtle">Контакты</p>
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-1 text-sm">
               {contacts.phones.map((phone) => (
                 <li key={phone.value}>
                   <a
                     href={telHref(phone.value)}
                     data-ym="phone_click"
-                    className="font-display font-extrabold transition-colors hover:text-accent-ink"
+                    className="inline-block py-1 font-display font-extrabold transition-colors hover:text-accent-ink"
                   >
                     {formatPhone(phone.value)}
                   </a>
@@ -70,7 +70,7 @@ export function Footer({
               ))}
               {contacts.email ? (
                 <li>
-                  <a href={`mailto:${contacts.email}`} className="transition-colors hover:text-accent-ink">
+                  <a href={`mailto:${contacts.email}`} className="inline-block py-1 transition-colors hover:text-accent-ink">
                     {contacts.email}
                   </a>
                 </li>
@@ -82,16 +82,16 @@ export function Footer({
 
           <div>
             <p className="eyebrow mb-3 text-fg-subtle">Компания</p>
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-1 text-sm">
               {CROSS_LINKS[site].map((target) => (
                 <li key={target}>
-                  <a href={siteUrl(target)} className="transition-colors hover:text-accent-ink">
+                  <a href={siteUrl(target)} className="inline-block py-1 transition-colors hover:text-accent-ink">
                     {SITES[target].shortName}
                   </a>
                 </li>
               ))}
               <li>
-                <Link href="/politika" className="transition-colors hover:text-accent-ink">
+                <Link href="/politika" className="inline-block py-1 transition-colors hover:text-accent-ink">
                   Политика конфиденциальности
                 </Link>
               </li>

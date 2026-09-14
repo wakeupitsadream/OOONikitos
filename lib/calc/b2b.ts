@@ -18,9 +18,13 @@ export type B2bObjectId =
 export type B2bObject = {
   id: B2bObjectId;
   label: string;
-  /** Рекомендуемое число визитов в месяц по санитарным правилам. */
+  /**
+   * Число визитов в месяц по нашему графику. Санитарные правила задают
+   * обязанность проводить мероприятия и требование к результату, а не
+   * периодичность — поэтому это план компании, а не норма регулятора.
+   */
   visitsPerMonth: number;
-  /** Нормативное основание — показываем клиенту. */
+  /** Нормативное основание обязанности проводить обработки — показываем клиенту. */
   norm: string;
   /** Коэффициент сложности объекта. */
   factor: number;
@@ -65,7 +69,7 @@ function roundUp(value: number, step = 100): number {
 }
 
 export function calcB2b(input: B2bInput, rates: B2bRates): B2bResult {
-  const area = Math.max(0, Math.round(input.area));
+  const area = Math.max(0, Math.round(Number.isFinite(input.area) ? input.area : 0));
   const extraArea = Math.max(0, area - rates.includedArea);
   const perVisitRaw = (rates.baseVisit + extraArea * rates.perM2) * input.object.factor;
   const perVisit = roundUp(perVisitRaw);

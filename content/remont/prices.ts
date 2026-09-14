@@ -6,7 +6,7 @@ import type { WorkRate } from '@/lib/calc/remont';
  * ВНИМАНИЕ: все ставки помечены draft. Поштучных расценок на штукатурку,
  * шпаклёвку, покраску и обои по Оренбургу разведка не получила
  * (docs/research/market-remont.json, лимит поиска) — значения выведены
- * из общих ставок отделки 2 490–3 490 ₽/м² пола и подлежат замене
+ * из общих ставок отделки 2 490–3 490 ₽/м² пола и подлежат замене
  * прайсом владельца. Правится только этот файл.
  */
 export const PRICE_STATUS: 'draft' | 'confirmed' = 'draft';
@@ -51,10 +51,10 @@ export const WORK_RATES: WorkRate[] = [
 
 /** Типовые комнаты для быстрого заполнения калькулятора. */
 export const ROOM_PRESETS = [
-  { id: 'room-small', label: 'Комната 12 м²', length: 4, width: 3, height: 2.7, windows: 1, doors: 1 },
-  { id: 'room-medium', label: 'Комната 18 м²', length: 5, width: 3.6, height: 2.7, windows: 1, doors: 1 },
-  { id: 'room-large', label: 'Комната 25 м²', length: 5, width: 5, height: 2.7, windows: 2, doors: 1 },
-  { id: 'kitchen', label: 'Кухня 10 м²', length: 3.5, width: 2.9, height: 2.7, windows: 1, doors: 1 },
-  { id: 'hall', label: 'Прихожая 6 м²', length: 3, width: 2, height: 2.7, windows: 0, doors: 3 },
-  { id: 'bath', label: 'Санузел 4 м²', length: 2, width: 2, height: 2.7, windows: 0, doors: 1 },
+  { id: 'room-small', label: 'Комната 12 м²', length: 4, width: 3, height: 2.7, windows: 1, doors: 1 },
+  { id: 'room-medium', label: 'Комната 18 м²', length: 5, width: 3.6, height: 2.7, windows: 1, doors: 1 },
+  { id: 'room-large', label: 'Комната 25 м²', length: 5, width: 5, height: 2.7, windows: 2, doors: 1 },
+  { id: 'kitchen', label: 'Кухня 10 м²', length: 3.5, width: 2.9, height: 2.7, windows: 1, doors: 1 },
+  { id: 'hall', label: 'Прихожая 6 м²', length: 3, width: 2, height: 2.7, windows: 0, doors: 3 },
+  { id: 'bath', label: 'Санузел 4 м²', length: 2, width: 2, height: 2.7, windows: 0, doors: 1 },
 ];

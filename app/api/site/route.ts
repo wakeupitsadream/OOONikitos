@@ -11,8 +11,19 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const to = url.searchParams.get('to');
+  // Открытый редирект закрываем не по строке, а по результату разбора:
+  // «/\evil.com» и «/%09/evil.com» проходят проверку префикса, но парсятся
+  // как чужой origin — такие уводим на корень.
   const rawPath = url.searchParams.get('to_path') ?? '/';
-  const path = rawPath.startsWith('/') && !rawPath.startsWith('//') ? rawPath : '/';
+  let path = '/';
+  try {
+    const target = new URL(rawPath || '/', url.origin);
+    if (target.origin === url.origin && rawPath.startsWith('/')) {
+      path = `${target.pathname}${target.search}${target.hash}`;
+    }
+  } catch {
+    path = '/';
+  }
 
   if (!isSiteId(to)) {
     return NextResponse.redirect(new URL('/', url.origin), 307);

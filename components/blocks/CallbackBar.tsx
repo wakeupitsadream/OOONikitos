@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { Phone, MessageCircle, FileText } from 'lucide-react';
 import { telHref } from '@/lib/phone';
 import type { Messenger } from '@/content/types';
@@ -32,6 +33,7 @@ const COLUMNS: Record<number, string> = {
  * сколько есть каналов: пустых колонок с разделителями не остаётся.
  */
 export function CallbackBar({ phone, messenger, formHref = '#zayavka' }: CallbackBarProps) {
+  const router = useRouter();
   const items: Item[] = [];
   if (phone) {
     items.push({ key: 'phone', href: telHref(phone), label: 'Позвонить', icon: Phone, ym: 'phone_click' });
@@ -58,10 +60,23 @@ export function CallbackBar({ phone, messenger, formHref = '#zayavka' }: Callbac
       <div className={`grid ${COLUMNS[items.length] ?? 'grid-cols-3'} divide-x divide-border`}>
         {items.map((item) => {
           const Icon = item.icon;
+          // Полоса общая для всех страниц бренда, а якорь формы есть не везде
+          // (например, на политике). Нет якоря — уводим на контакты.
+          const onClick =
+            item.key === 'form'
+              ? (event: React.MouseEvent<HTMLAnchorElement>) => {
+                  const id = formHref.startsWith('#') ? formHref.slice(1) : '';
+                  if (id && !document.getElementById(id)) {
+                    event.preventDefault();
+                    router.push(`/kontakty${formHref}`);
+                  }
+                }
+              : undefined;
           return (
             <a
               key={item.key}
               href={item.href}
+              onClick={onClick}
               data-ym={item.ym}
               target={item.external ? '_blank' : undefined}
               rel={item.external ? 'noopener noreferrer' : undefined}

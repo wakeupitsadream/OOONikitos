@@ -16,15 +16,15 @@ export function TaskRouter() {
 
   return (
     <div>
-      <div role="tablist" aria-label="Тип объекта" className="flex flex-wrap gap-2">
+      {/* Обычные кнопки-переключатели, не ARIA-вкладки: панелей и стрелочной навигации здесь нет */}
+      <div role="group" aria-label="Тип объекта" className="flex flex-wrap gap-2">
         {ROUTER_OPTIONS.map((option) => {
           const active = option.id === objectId;
           return (
             <button
               key={option.id}
               type="button"
-              role="tab"
-              aria-selected={active}
+              aria-pressed={active}
               onClick={() => setObjectId(option.id)}
               className={`rounded-[var(--radius-sm)] border px-5 py-2.5 font-display text-[0.9375rem] font-extrabold transition-colors duration-150 ${
                 active
@@ -38,7 +38,7 @@ export function TaskRouter() {
         })}
       </div>
 
-      <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+      <ul className="mt-6 grid gap-3 sm:grid-cols-2" aria-live="polite" aria-label="Подходящие услуги">
         {current.tasks.map((task) => (
           <li key={task.label}>
             <a

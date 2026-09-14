@@ -118,7 +118,8 @@ async function loadMontserrat(weight: 600 | 800): Promise<ArrayBuffer | null> {
     fontCache.set(key, data);
     return data;
   } catch {
-    // Без шрифта картинка всё равно отрисуется — латиницей системным шрифтом
+    // Без шрифта картинка отрисуется системным шрифтом без кириллицы — это надо видеть в логах
+    console.error('[og] шрифт не загрузился', { weight });
     return null;
   }
 }

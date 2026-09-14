@@ -11,6 +11,16 @@ import type { B2bObject, B2bRates } from '@/lib/calc/b2b';
  */
 export const PRICE_STATUS: 'draft' | 'confirmed' = 'draft';
 
+/**
+ * Сроки гарантии (guaranteeDays у тарифов) — тоже черновик: владелец ещё не
+ * назвал цифру и условия повторной обработки. Пока 'draft', рядом с днями
+ * стоит пометка «уточняется».
+ */
+export const GUARANTEE_STATUS: 'draft' | 'confirmed' = 'draft';
+
+/** Срок гарантии на основные услуги для витринного блока на главной. */
+export const DEFAULT_GUARANTEE_DAYS = 90;
+
 export const DEZGARANT_RATES: Rates = {
   tariffs: {
     tarakany: {

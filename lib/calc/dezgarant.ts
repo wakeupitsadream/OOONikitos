@@ -100,7 +100,9 @@ function roundUp(value: number, step = 50): number {
 /** Сколько расчётных единиц в объекте: комнаты, метры или сотки. */
 export function unitsFor(input: CalcInput, tariff: Tariff): number {
   if (tariff.unit === 'room') return ROOMS[input.object] ?? 1;
-  return Math.max(1, Math.round(input.amount ?? 0));
+  // NaN из пустого поля ввода не должен превращаться в «NaN ₽»
+  const amount = Number.isFinite(input.amount) ? (input.amount as number) : 0;
+  return Math.max(1, Math.round(amount));
 }
 
 export function calcDezgarant(input: CalcInput, rates: Rates): CalcResult {
@@ -150,23 +152,40 @@ export function calcDezgarant(input: CalcInput, rates: Rates): CalcResult {
   };
 }
 
+/** Выезды планируются по времени Оренбурга (UTC+5), а не по часам посетителя. */
+export const VISIT_TIME_ZONE = 'Asia/Yekaterinburg';
+
+/** После этого часа выезд «сегодня» уже не обещаем — одна граница для метки и слотов. */
+const TODAY_CUTOFF_HOUR = 15;
+
+/** Час суток в заданном поясе (0–23). */
+export function hourIn(now: Date, timeZone: string = VISIT_TIME_ZONE): number {
+  const formatted = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hour: 'numeric',
+    hourCycle: 'h23',
+  }).format(now);
+  const hour = Number.parseInt(formatted, 10);
+  return Number.isFinite(hour) ? hour : now.getHours();
+}
+
 /**
  * Ближайший выезд по часу суток: детерминированно, без Math.random,
  * чтобы расчёт был воспроизводим и правдоподобен в любое время.
  */
-export function nextVisitLabel(now: Date): string {
-  const hour = now.getHours();
-  if (hour < 15) return 'сегодня';
-  if (hour < 21) return 'завтра с 9:00';
-  return 'завтра с 9:00';
+export function nextVisitLabel(now: Date, timeZone: string = VISIT_TIME_ZONE): string {
+  return hourIn(now, timeZone) < TODAY_CUTOFF_HOUR ? 'сегодня' : 'завтра с 9:00';
 }
 
 /** Варианты слотов выезда: пожелание в заявке, а не бронирование. */
-export function visitSlots(now: Date): { id: string; label: string }[] {
-  const hour = now.getHours();
+export function visitSlots(
+  now: Date,
+  timeZone: string = VISIT_TIME_ZONE,
+): { id: string; label: string }[] {
+  const hour = hourIn(now, timeZone);
   const slots: { id: string; label: string }[] = [];
   if (hour < 12) slots.push({ id: 'today-afternoon', label: 'Сегодня, 14:00–17:00' });
-  if (hour < 16) slots.push({ id: 'today-evening', label: 'Сегодня, 17:00–20:00' });
+  if (hour < TODAY_CUTOFF_HOUR) slots.push({ id: 'today-evening', label: 'Сегодня, 17:00–20:00' });
   slots.push({ id: 'tomorrow-morning', label: 'Завтра, 9:00–12:00' });
   slots.push({ id: 'tomorrow-afternoon', label: 'Завтра, 14:00–17:00' });
   slots.push({ id: 'any', label: 'Любое удобное время' });

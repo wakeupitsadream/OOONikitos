@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight, Check, Info, X } from 'lucide-react';
 import { SERVICES } from '@/content/dezgarant/services';
-import { B2B_RATES, DEZGARANT_RATES, PRICE_STATUS } from '@/content/dezgarant/prices';
+import { B2B_RATES, DEZGARANT_RATES, PRICE_STATUS, GUARANTEE_STATUS } from '@/content/dezgarant/prices';
 import { PRICE_INCLUDES } from '@/content/dezgarant/faq';
 import { DEZGARANT_PHONE } from '@/content/dezgarant/contacts';
 import type { Tariff } from '@/lib/calc/dezgarant';
@@ -101,7 +101,7 @@ export default function PricesPage() {
             as="h1"
             eyebrow="Цены"
             title="Сколько стоит обработка в Оренбурге"
-            lead="Цена «от» — за типовой объект. Точную стоимость специалист называет после осмотра и фиксирует в договоре до начала работ: доплат «за степень заражения» не бывает."
+            lead="Цена «от» — за типовой объект. Точную стоимость специалист называет после осмотра и фиксирует в договоре до начала работ. Измениться она может только вместе с объёмом — и согласуется заранее."
           />
         </Reveal>
 
@@ -110,7 +110,7 @@ export default function PricesPage() {
             <div className="flex items-start gap-4">
               <Info className="mt-1 size-6 shrink-0 text-[var(--warn)]" aria-hidden="true" />
               <div>
-                <p className="display-md">Откуда эти цифры</p>
+                <h3 className="display-md">Откуда эти цифры</h3>
                 {priceDraft ? (
                   <>
                     <p className="mt-3 text-[0.9375rem] text-fg-muted">
@@ -167,7 +167,10 @@ export default function PricesPage() {
                   {typograf(row.base)}
                   {row.extra ? `, ${typograf(row.extra)}` : ''}
                 </p>
-                <p className="mt-1 text-sm text-fg-subtle">Гарантия {row.guarantee}</p>
+                <p className="mt-1 text-sm text-fg-subtle">
+                  Гарантия {row.guarantee}
+                  {GUARANTEE_STATUS === 'draft' ? <DraftMark /> : null}
+                </p>
               </li>
             ))}
           </ul>
@@ -219,7 +222,10 @@ export default function PricesPage() {
                       <span className="mt-1 block text-sm text-fg-subtle">{typograf(row.extra)}</span>
                     ) : null}
                   </td>
-                  <td className="tabular py-4 text-[0.9375rem] text-fg-muted">{row.guarantee}</td>
+                  <td className="tabular py-4 text-[0.9375rem] text-fg-muted">
+                    {row.guarantee}
+                    {GUARANTEE_STATUS === 'draft' ? <DraftMark /> : null}
+                  </td>
                 </tr>
               ))}
             </tbody>

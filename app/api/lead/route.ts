@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { looksLikeBot, validateLead, type Lead } from '@/lib/lead';
+import { FAST_FILL_NOTE, hasHoneypot, isSuspiciouslyFast, validateLead, type Lead } from '@/lib/lead';
 import { sendLeadToEmail } from '@/lib/mail';
 import { checkRateLimit } from '@/lib/ratelimit';
 import { sendLeadToTelegram, type DeliveryResult } from '@/lib/telegram';
@@ -21,11 +21,16 @@ const RATE_LIMIT_ERROR =
 const DELIVERY_ERROR = 'Не удалось отправить заявку. Позвоните нам — мы на связи.';
 const BAD_JSON_ERROR = 'Не удалось прочитать заявку. Обновите страницу и попробуйте снова.';
 
-/** IP из x-forwarded-for: на Vercel заголовок перезаписывается платформой. */
+/**
+ * IP клиента. На Vercel x-forwarded-for перезаписывается платформой и содержит
+ * один адрес. За другим обратным прокси берём последний элемент — его дописал
+ * наш прокси, а первый элемент клиент может подставить сам.
+ */
 function clientIp(request: Request): string {
   const forwarded = request.headers.get('x-forwarded-for');
-  const first = forwarded?.split(',')[0]?.trim();
-  if (first) return first;
+  const parts = forwarded?.split(',').map((part) => part.trim()).filter(Boolean) ?? [];
+  const last = parts[parts.length - 1];
+  if (last) return last;
   return request.headers.get('x-real-ip')?.trim() || 'unknown';
 }
 
@@ -63,8 +68,11 @@ export async function POST(request: Request) {
     );
   }
 
-  // Ловушки проверяем до валидации: бот получает «успех» без подсказок.
-  if (looksLikeBot(raw)) {
+  // Ловушку проверяем до валидации: бот получает «успех» без подсказок.
+  // Единственный случай, когда заявка отбрасывается, — и он попадает в лог.
+  if (hasHoneypot(raw)) {
+    const site = typeof raw === 'object' && raw !== null ? (raw as { site?: unknown }).site : undefined;
+    console.warn('[lead] отклонена: заполнена ловушка', { site: typeof site === 'string' ? site : 'unknown' });
     return NextResponse.json({ ok: true }, { headers: NO_STORE });
   }
 
@@ -77,6 +85,12 @@ export async function POST(request: Request) {
   }
 
   const lead = parsed.data;
+
+  // Слишком быстрое заполнение — не повод терять заявку: автозаполнение
+  // браузера укладывается в пару секунд. Доставляем с пометкой для владельца.
+  if (isSuspiciouslyFast(raw)) {
+    lead.details = [lead.details, FAST_FILL_NOTE].filter(Boolean).join('\n');
+  }
 
   const limit = checkRateLimit(clientIp(request));
   if (!limit.allowed) {

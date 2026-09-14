@@ -181,7 +181,7 @@ export default async function ServicePage({ params }: PageProps) {
           <Reveal>
             <div className="flex items-center gap-3">
               <ClipboardList className="size-5 text-accent-ink" aria-hidden="true" />
-              <p className="display-md">Как подготовить помещение</p>
+              <h3 className="display-md">Как подготовить помещение</h3>
             </div>
             <ul className="mt-5 space-y-2.5">
               {service.prep.map((item) => (
@@ -198,7 +198,7 @@ export default async function ServicePage({ params }: PageProps) {
           <Reveal delay={80}>
             <div className="flex items-center gap-3">
               <Check className="size-5 text-accent-ink" aria-hidden="true" />
-              <p className="display-md">Что делать после обработки</p>
+              <h3 className="display-md">Что делать после обработки</h3>
             </div>
             <ul className="mt-5 space-y-2.5">
               {service.after.map((item) => (

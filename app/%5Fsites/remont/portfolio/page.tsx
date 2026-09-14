@@ -101,7 +101,7 @@ export default function RemontPortfolioPage() {
               <Card clipped className="h-full">
                 <div className="flex items-center gap-3">
                   <Camera className="size-5 shrink-0 text-accent-ink" aria-hidden="true" />
-                  <p className="display-md">Что здесь появится</p>
+                  <h3 className="display-md">Что здесь появится</h3>
                 </div>
                 <ul className="mt-5 space-y-2.5 text-[0.9375rem]">
                   {PROMISED.map((item) => (
@@ -125,7 +125,7 @@ export default function RemontPortfolioPage() {
               <Card className="h-full">
                 <div className="flex items-center gap-3">
                   <Ruler className="size-5 shrink-0 text-accent-ink" aria-hidden="true" />
-                  <p className="display-md">Чем проверить нас сейчас</p>
+                  <h3 className="display-md">Чем проверить нас сейчас</h3>
                 </div>
                 <p className="mt-4 text-[0.9375rem] text-fg-muted">
                   Замер бесплатный и ни к чему не обязывает. На нём видно то, чего не покажет ни

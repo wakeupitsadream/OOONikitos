@@ -80,7 +80,7 @@ export default function UmbrellaPage() {
               {DIRECTIONS.map((direction) => (
                 <Card key={direction.site} href={siteUrl(direction.site)} clipped>
                   <p className="eyebrow text-fg-subtle">{direction.tagline}</p>
-                  <p className="display-md mt-2">{direction.name}</p>
+                  <h3 className="display-md mt-2">{direction.name}</h3>
                   <ul className="mt-4 flex flex-wrap gap-2">
                     {direction.services.map((service) => (
                       <li

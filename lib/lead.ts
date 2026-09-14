@@ -101,24 +101,33 @@ export function isTooFast(t: number, now: number): boolean {
   return elapsed < MIN_FILL_MS;
 }
 
-/**
- * Ловушки проверяем до валидации: боту отвечаем «успехом», а не подсказкой,
- * какое именно поле его выдало.
- */
-export function looksLikeBot(raw: unknown, now: number = Date.now()): boolean {
+/** Заполнено скрытое поле-ловушка — это бот, ответ ему «успех» без подсказок. */
+export function hasHoneypot(raw: unknown): boolean {
   if (typeof raw !== 'object' || raw === null) return false;
-  const payload = raw as Record<string, unknown>;
+  const hp = (raw as Record<string, unknown>).hp;
+  if (typeof hp === 'string') return hp.trim().length > 0;
+  return hp !== undefined;
+}
 
-  const hp = payload.hp;
-  if (typeof hp === 'string') {
-    if (hp.trim().length > 0) return true;
-  } else if (hp !== undefined) {
-    return true;
-  }
-
-  const t = payload.t;
+/**
+ * Форма отправлена быстрее MIN_FILL_MS. Это лишь подозрение: автозаполнение
+ * браузера укладывается в такое время — поэтому такую заявку не бросаем,
+ * а доставляем с пометкой.
+ */
+export function isSuspiciouslyFast(raw: unknown, now: number = Date.now()): boolean {
+  if (typeof raw !== 'object' || raw === null) return false;
+  const t = (raw as Record<string, unknown>).t;
   return typeof t === 'number' && isTooFast(t, now);
 }
+
+/** Обе эвристики вместе — для тестов и обратной совместимости. */
+export function looksLikeBot(raw: unknown, now: number = Date.now()): boolean {
+  return hasHoneypot(raw) || isSuspiciouslyFast(raw, now);
+}
+
+/** Пометка для владельца в тексте заявки, отправленной подозрительно быстро. */
+export const FAST_FILL_NOTE =
+  'Внимание: форма заполнена быстрее 3 секунд — возможно, автозаполнение браузера или бот.';
 
 /** Поля заявки для Telegram и письма — один порядок и одни подписи. */
 export function leadFields(lead: Lead): { label: string; value: string }[] {
