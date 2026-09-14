@@ -6,10 +6,18 @@ import { test, expect, type Page } from '@playwright/test';
  */
 
 const SITES = [
-  { id: 'belye-niti', name: 'Белые Нити', home: '/' },
-  { id: 'dezgarant', name: 'ДезГарант', home: '/' },
-  { id: 'remont', name: 'Бриллиант Ремонт', home: '/' },
+  { id: 'belye-niti', name: 'Белые Нити', home: '/', theme: 'dark' },
+  { id: 'dezgarant', name: 'ДезГарант', home: '/', theme: 'light' },
+  { id: 'remont', name: 'Бриллиант Ремонт', home: '/', theme: 'dark' },
 ] as const;
+
+/** Яркость из строки вида «rgb(10, 10, 10)» — грубо, для проверки темы. */
+function luminance(color: string): number {
+  const parts = color.match(/\d+(\.\d+)?/g);
+  if (!parts || parts.length < 3) return Number.NaN;
+  const [r, g, b] = parts.slice(0, 3).map(Number);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
 
 function url(path: string, site: string): string {
   const separator = path.includes('?') ? '&' : '?';
@@ -107,6 +115,16 @@ test.describe('Мобильное меню', () => {
         (viewport?.height ?? 0) + 1,
       );
 
+      // Шторка живёт в портале — тема сайта должна сохраняться и там
+      const panelBg = await panel.evaluate((el) => getComputedStyle(el).backgroundColor);
+      const brightness = luminance(panelBg);
+      expect(Number.isNaN(brightness), `не разобран цвет ${panelBg}`).toBe(false);
+      if (site.theme === 'dark') {
+        expect(brightness, `тёмная тема, а фон шторки ${panelBg}`).toBeLessThan(90);
+      } else {
+        expect(brightness, `светлая тема, а фон шторки ${panelBg}`).toBeGreaterThan(180);
+      }
+
       // Первый пункт меню кликается и уводит на свою страницу
       const first = panel.getByRole('link').first();
       const href = await first.getAttribute('href');
@@ -115,6 +133,37 @@ test.describe('Мобильное меню', () => {
       if (href && href.startsWith('/') && !href.startsWith('/#')) {
         await expect(page).toHaveURL(new RegExp(href.replace(/[/]/g, '\\/')));
       }
+    });
+  }
+});
+
+test.describe('Липкая полоса связи', () => {
+  // Полоса fixed внизу экрана: она не должна закрывать подпись в футере
+  // и не должна рисовать пустые ячейки, когда мессенджера у бренда нет.
+  for (const site of SITES.filter((item) => item.id !== 'belye-niti')) {
+    test(`${site.name}: полоса не закрывает футер и без пустых ячеек`, async ({ page }, testInfo) => {
+      test.skip(testInfo.project.name !== 'mobile', 'только мобильный проект');
+      await page.goto(url(site.home, site.id), { waitUntil: 'load' });
+
+      const bar = page.locator('[data-callback-bar]');
+      await expect(bar).toBeVisible();
+      const cells = bar.locator('.grid > *');
+      const links = bar.locator('.grid > a');
+      expect(await cells.count(), 'все ячейки полосы — ссылки').toBe(await links.count());
+      expect(await links.count()).toBeGreaterThanOrEqual(2);
+
+      // Подпись разработчика в самом низу футера должна быть кликабельна,
+      // то есть в её центре сверху лежит она сама, а не полоса.
+      const signature = page.locator('footer a[href*="maxim-batutin.ru"]');
+      await signature.scrollIntoViewIfNeeded();
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      await page.waitForTimeout(150);
+      const covered = await signature.evaluate((el) => {
+        const rect = el.getBoundingClientRect();
+        const top = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        return !(top === el || el.contains(top));
+      });
+      expect(covered, 'подпись в футере перекрыта липкой полосой').toBe(false);
     });
   }
 });

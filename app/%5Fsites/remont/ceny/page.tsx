@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { ArrowRight, Info } from 'lucide-react';
 import { MIN_ORDER, PRICE_STATUS, WORK_RATES } from '@/content/remont/prices';
-import { REMONT_CONTACTS, REMONT_PHONE } from '@/content/remont/contacts';
+import { REMONT_PHONE } from '@/content/remont/contacts';
 import { pageMetadata, jsonLdScript } from '@/lib/seo';
 import { siteOrigin } from '@/lib/site';
 import { formatPrice, pluralize } from '@/lib/plural';
@@ -12,7 +12,6 @@ import { DraftMark } from '@/components/ui/Badge';
 import { Reveal } from '@/components/ui/Reveal';
 import { RemontCalculator } from '@/components/blocks/RemontCalculator';
 import { LeadForm } from '@/components/blocks/LeadForm';
-import { CallbackBar } from '@/components/blocks/CallbackBar';
 
 export const metadata: Metadata = pageMetadata({
   site: 'remont',
@@ -211,11 +210,6 @@ export default function RemontPricesPage() {
         </div>
       </Section>
 
-      <CallbackBar
-        phone={REMONT_PHONE}
-        messenger={REMONT_CONTACTS.messengers[0] ?? null}
-        formHref="#zayavka"
-      />
     </>
   );
 }

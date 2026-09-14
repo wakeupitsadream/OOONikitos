@@ -19,6 +19,7 @@ export default function DezgarantLayout({ children }: { children: React.ReactNod
       logo={<LogoDezgarant variant="full" className="h-9 md:h-10" />}
       footerLogo={<LogoDezgarant variant="full" withSlogan className="h-11" />}
       withLicense
+      withCallbackBar
     >
       {children}
     </SiteShell>

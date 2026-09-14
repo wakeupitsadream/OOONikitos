@@ -11,6 +11,8 @@ type FooterProps = {
   contacts: Contacts;
   /** Показывать строку лицензии — только там, где речь о санитарных услугах. */
   withLicense?: boolean;
+  /** На странице есть мобильная липкая полоса — снизу нужен запас под неё. */
+  withCallbackBar?: boolean;
   logo?: React.ReactNode;
 };
 
@@ -20,12 +22,23 @@ const CROSS_LINKS: Record<SiteId, SiteId[]> = {
   remont: ['belye-niti', 'dezgarant'],
 };
 
-export function Footer({ site, contacts, withLicense = false, logo }: FooterProps) {
+export function Footer({
+  site,
+  contacts,
+  withLicense = false,
+  withCallbackBar = false,
+  logo,
+}: FooterProps) {
   const config = SITES[site];
   const year = 2026;
+  // Полоса связи высотой ~4rem закрывает низ страницы на мобильном:
+  // добавляем её высоту к нижнему отступу, чтобы подпись оставалась видимой.
+  const padding = withCallbackBar
+    ? 'pt-12 pb-28 md:pt-16 md:pb-32 lg:pb-16'
+    : 'py-12 md:py-16';
 
   return (
-    <footer className="border-t border-border bg-bg-deep py-12 md:py-16">
+    <footer className={`border-t border-border bg-bg-deep ${padding}`}>
       <Container>
         <div className="grid gap-10 md:grid-cols-[1.2fr_1fr_1fr]">
           <div>
@@ -90,7 +103,7 @@ export function Footer({ site, contacts, withLicense = false, logo }: FooterProp
           <p className="mt-10 border-t border-border pt-6 text-sm text-fg-subtle">
             Лицензия на деятельность по дезинфекции, дезинсекции и дератизации:{' '}
             <span className="whitespace-nowrap">ЕРУЛ № {LICENSE.erul}</span>. Выдана{' '}
-            {LICENSE.authority}.{' '}
+            {LICENSE.issuedAtLabel}. Лицензирующий орган — {LICENSE.authority}.{' '}
             <a
               href={LICENSE.verifyUrl}
               target="_blank"

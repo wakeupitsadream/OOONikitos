@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AlertTriangle, ArrowLeft, Check, ClipboardList, ShieldCheck } from 'lucide-react';
 import { SERVICES, SERVICE_BY_SLUG } from '@/content/dezgarant/services';
-import { DEZGARANT_CONTACTS, DEZGARANT_PHONE } from '@/content/dezgarant/contacts';
+import { DEZGARANT_PHONE } from '@/content/dezgarant/contacts';
 import { pageMetadata, jsonLdScript } from '@/lib/seo';
 import { siteOrigin } from '@/lib/site';
 import { Section, SectionHead } from '@/components/ui/Section';
@@ -13,7 +13,6 @@ import { Accordion, AccordionItem } from '@/components/ui/Accordion';
 import { Reveal } from '@/components/ui/Reveal';
 import { DezDiagnostic } from '@/components/blocks/DezDiagnostic';
 import { LeadForm } from '@/components/blocks/LeadForm';
-import { CallbackBar } from '@/components/blocks/CallbackBar';
 import { ServiceIcon } from '@/components/icons';
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -255,10 +254,6 @@ export default async function ServicePage({ params }: PageProps) {
         </div>
       </Section>
 
-      <CallbackBar
-        phone={DEZGARANT_PHONE}
-        messenger={DEZGARANT_CONTACTS.messengers[0] ?? null}
-      />
     </>
   );
 }

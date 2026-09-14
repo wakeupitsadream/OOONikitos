@@ -11,46 +11,67 @@ type CallbackBarProps = {
   formHref?: string;
 };
 
+type Item = {
+  key: string;
+  href: string;
+  label: string;
+  icon: typeof Phone;
+  external?: boolean;
+  ym?: string;
+};
+
+const COLUMNS: Record<number, string> = {
+  1: 'grid-cols-1',
+  2: 'grid-cols-2',
+  3: 'grid-cols-3',
+};
+
 /**
  * Мобильная липкая полоса связи: звонок, мессенджер, заявка.
- * На десктопе скрыта — там контакты видны в шапке.
+ * На десктопе скрыта — там контакты видны в шапке. Ячеек ровно столько,
+ * сколько есть каналов: пустых колонок с разделителями не остаётся.
  */
 export function CallbackBar({ phone, messenger, formHref = '#zayavka' }: CallbackBarProps) {
-  if (!phone && !messenger) return null;
+  const items: Item[] = [];
+  if (phone) {
+    items.push({ key: 'phone', href: telHref(phone), label: 'Позвонить', icon: Phone, ym: 'phone_click' });
+  }
+  if (messenger) {
+    items.push({
+      key: 'messenger',
+      href: messenger.url,
+      label: 'Написать',
+      icon: MessageCircle,
+      external: true,
+      ym: 'messenger_click',
+    });
+  }
+  items.push({ key: 'form', href: formHref, label: 'Заявка', icon: FileText });
+
+  if (items.length < 2) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-[color-mix(in_srgb,var(--bg)_94%,transparent)] backdrop-blur-md pb-[env(safe-area-inset-bottom)] lg:hidden">
-      <div className="grid grid-cols-3 divide-x divide-border">
-        {phone ? (
-          <a
-            href={telHref(phone)}
-            data-ym="phone_click"
-            className="flex flex-col items-center gap-1 py-2.5 text-[0.6875rem] font-semibold"
-          >
-            <Phone className="size-5 text-accent-ink" aria-hidden="true" />
-            Позвонить
-          </a>
-        ) : (
-          <span />
-        )}
-        {messenger ? (
-          <a
-            href={messenger.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            data-ym="messenger_click"
-            className="flex flex-col items-center gap-1 py-2.5 text-[0.6875rem] font-semibold"
-          >
-            <MessageCircle className="size-5 text-accent-ink" aria-hidden="true" />
-            Написать
-          </a>
-        ) : (
-          <span />
-        )}
-        <a href={formHref} className="flex flex-col items-center gap-1 py-2.5 text-[0.6875rem] font-semibold">
-          <FileText className="size-5 text-accent-ink" aria-hidden="true" />
-          Заявка
-        </a>
+    <div
+      data-callback-bar
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-[color-mix(in_srgb,var(--bg)_94%,transparent)] backdrop-blur-md pb-[env(safe-area-inset-bottom)] lg:hidden"
+    >
+      <div className={`grid ${COLUMNS[items.length] ?? 'grid-cols-3'} divide-x divide-border`}>
+        {items.map((item) => {
+          const Icon = item.icon;
+          return (
+            <a
+              key={item.key}
+              href={item.href}
+              data-ym={item.ym}
+              target={item.external ? '_blank' : undefined}
+              rel={item.external ? 'noopener noreferrer' : undefined}
+              className="flex min-h-14 flex-col items-center justify-center gap-1 py-2.5 text-[0.6875rem] font-semibold"
+            >
+              <Icon className="size-5 text-accent-ink" aria-hidden="true" />
+              {item.label}
+            </a>
+          );
+        })}
       </div>
     </div>
   );

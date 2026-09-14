@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, Check, ShieldCheck } from 'lucide-react';
 import { COMPANY } from '@/content/company';
-import { REMONT_CONTACTS, REMONT_PHONE } from '@/content/remont/contacts';
+import { REMONT_PHONE } from '@/content/remont/contacts';
 import { GUARANTEES, PUBLISHED_SERVICES, REMONT_FAQ, STEPS } from '@/content/remont/services';
 import { MIN_ORDER, PRICE_STATUS, ROOM_PRESETS, WORK_RATES } from '@/content/remont/prices';
 import { HAS_PORTFOLIO, PORTFOLIO } from '@/content/remont/portfolio';
@@ -20,7 +20,6 @@ import { RemontCalculator } from '@/components/blocks/RemontCalculator';
 import { BeforeAfter } from '@/components/blocks/BeforeAfter';
 import { ServiceGrid } from '@/components/blocks/ServiceGrid';
 import { LeadForm } from '@/components/blocks/LeadForm';
-import { CallbackBar } from '@/components/blocks/CallbackBar';
 
 /**
  * Главная «Бриллиант Ремонт» (§6.2 плана).
@@ -477,11 +476,6 @@ export default function RemontHome() {
         </div>
       </Section>
 
-      <CallbackBar
-        phone={REMONT_PHONE}
-        messenger={REMONT_CONTACTS.messengers[0] ?? null}
-        formHref="#zayavka"
-      />
     </>
   );
 }

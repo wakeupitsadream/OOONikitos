@@ -53,7 +53,13 @@ export function MobileNav({ site, nav, phone }: MobileNavProps) {
       */}
       {open
         ? createPortal(
-        <div className="fixed inset-0 z-[70] lg:hidden">
+        <div
+          // Портал уносит шторку из обёртки сайта, поэтому тему и акцент
+          // приходится объявлять заново — иначе меню рендерится палитрой :root.
+          data-theme={config.theme}
+          data-accent={config.accent}
+          className="fixed inset-0 z-[70] text-fg lg:hidden"
+        >
           <button
             type="button"
             className="absolute inset-0 bg-black/60"

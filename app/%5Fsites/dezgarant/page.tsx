@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, Check, MapPin, X } from 'lucide-react';
 import { COMPANY, LICENSE } from '@/content/company';
-import { DEZGARANT_CONTACTS, DEZGARANT_PHONE } from '@/content/dezgarant/contacts';
+import { DEZGARANT_PHONE } from '@/content/dezgarant/contacts';
 import { FEATURED_SERVICES } from '@/content/dezgarant/services';
 import { DEZGARANT_RATES, PRICE_STATUS } from '@/content/dezgarant/prices';
 import { DEZGARANT_FAQ, PRICE_INCLUDES, PROCESS_STEPS, SEASON_CALENDAR, AREA_CITIES } from '@/content/dezgarant/faq';
@@ -20,7 +20,6 @@ import { DezDiagnostic } from '@/components/blocks/DezDiagnostic';
 import { ServiceGrid } from '@/components/blocks/ServiceGrid';
 import { LicenseBlock } from '@/components/blocks/LicenseBlock';
 import { LeadForm } from '@/components/blocks/LeadForm';
-import { CallbackBar } from '@/components/blocks/CallbackBar';
 import { CoverageMap } from '@/components/blocks/CoverageMap';
 
 function jsonLd() {
@@ -341,11 +340,6 @@ export default function DezgarantHome() {
         </div>
       </Section>
 
-      <CallbackBar
-        phone={DEZGARANT_PHONE}
-        messenger={DEZGARANT_CONTACTS.messengers[0] ?? null}
-        formHref="#zayavka"
-      />
     </>
   );
 }

@@ -4,7 +4,7 @@ import { ArrowRight, Check, Info, X } from 'lucide-react';
 import { SERVICES } from '@/content/dezgarant/services';
 import { B2B_RATES, DEZGARANT_RATES, PRICE_STATUS } from '@/content/dezgarant/prices';
 import { PRICE_INCLUDES } from '@/content/dezgarant/faq';
-import { DEZGARANT_CONTACTS, DEZGARANT_PHONE } from '@/content/dezgarant/contacts';
+import { DEZGARANT_PHONE } from '@/content/dezgarant/contacts';
 import type { Tariff } from '@/lib/calc/dezgarant';
 import { pageMetadata, jsonLdScript } from '@/lib/seo';
 import { siteOrigin } from '@/lib/site';
@@ -16,7 +16,6 @@ import { Button } from '@/components/ui/Button';
 import { DraftMark } from '@/components/ui/Badge';
 import { Reveal } from '@/components/ui/Reveal';
 import { LeadForm } from '@/components/blocks/LeadForm';
-import { CallbackBar } from '@/components/blocks/CallbackBar';
 
 export const metadata: Metadata = pageMetadata({
   site: 'dezgarant',
@@ -366,7 +365,6 @@ export default function PricesPage() {
         </div>
       </Section>
 
-      <CallbackBar phone={DEZGARANT_PHONE} messenger={DEZGARANT_CONTACTS.messengers[0] ?? null} />
     </>
   );
 }

@@ -13,7 +13,6 @@ import { Diamond } from '@/components/ui/Diamond';
 import { Reveal } from '@/components/ui/Reveal';
 import { CoverageMap } from '@/components/blocks/CoverageMap';
 import { LeadForm } from '@/components/blocks/LeadForm';
-import { CallbackBar } from '@/components/blocks/CallbackBar';
 
 export const metadata: Metadata = pageMetadata({
   site: 'dezgarant',
@@ -216,11 +215,6 @@ export default function ContactsPage() {
         </div>
       </Section>
 
-      <CallbackBar
-        phone={DEZGARANT_PHONE}
-        messenger={DEZGARANT_CONTACTS.messengers[0] ?? null}
-        formHref="#zayavka"
-      />
     </>
   );
 }

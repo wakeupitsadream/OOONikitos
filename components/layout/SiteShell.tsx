@@ -5,6 +5,7 @@ import { Header } from './Header';
 import { Footer } from './Footer';
 import { Metrika } from './Metrika';
 import { CookieBar } from './CookieBar';
+import { CallbackBar } from '@/components/blocks/CallbackBar';
 
 type SiteShellProps = {
   site: SiteId;
@@ -13,6 +14,12 @@ type SiteShellProps = {
   footerLogo?: ReactNode;
   children: ReactNode;
   withLicense?: boolean;
+  /**
+   * Мобильная липкая полоса «Позвонить / Написать / Заявка» внизу экрана.
+   * Рендерится здесь, а не на страницах: футер должен знать про неё,
+   * чтобы подпись разработчика не пряталась под полосой.
+   */
+  withCallbackBar?: boolean;
 };
 
 /**
@@ -26,9 +33,12 @@ export function SiteShell({
   footerLogo,
   children,
   withLicense = false,
+  withCallbackBar = false,
 }: SiteShellProps) {
   const config = SITES[site];
   const counterId = process.env[config.ymEnv];
+  const phone = contacts.phones[0]?.value ?? null;
+  const messenger = contacts.messengers[0] ?? null;
 
   return (
     <div
@@ -37,13 +47,20 @@ export function SiteShell({
       className="flex min-h-dvh flex-col bg-bg text-fg"
     >
       <div className="noise-overlay" aria-hidden="true" />
-      <Header site={site} phone={contacts.phones[0]?.value ?? null} logo={logo} />
-      <main className="flex-1 pb-16 lg:pb-0">{children}</main>
-      <Footer site={site} contacts={contacts} withLicense={withLicense} logo={footerLogo ?? logo} />
+      <Header site={site} phone={phone} logo={logo} />
+      <main className="flex-1">{children}</main>
+      <Footer
+        site={site}
+        contacts={contacts}
+        withLicense={withLicense}
+        withCallbackBar={withCallbackBar}
+        logo={footerLogo ?? logo}
+      />
       <Suspense fallback={null}>
         <Metrika counterId={counterId} />
       </Suspense>
       <CookieBar enabled={Boolean(counterId)} />
+      {withCallbackBar ? <CallbackBar phone={phone} messenger={messenger} /> : null}
     </div>
   );
 }

@@ -26,7 +26,9 @@ const PROMISES = [
 function GoldCrack() {
   return (
     <svg
-      className="pointer-events-none absolute inset-0 h-full w-full"
+      // На узком экране ломаная уходит к правому краю и гаснет: иначе она
+      // режет заголовок, который на 375 px занимает всю ширину.
+      className="pointer-events-none absolute inset-0 h-full w-full translate-x-[30%] opacity-50 md:translate-x-0 md:opacity-100"
       viewBox="0 0 1200 700"
       preserveAspectRatio="none"
       aria-hidden="true"

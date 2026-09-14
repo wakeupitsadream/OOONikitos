@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { ArrowRight, Check } from 'lucide-react';
 import { STEPS } from '@/content/remont/services';
-import { REMONT_CONTACTS, REMONT_PHONE } from '@/content/remont/contacts';
+import { REMONT_PHONE } from '@/content/remont/contacts';
 import { pageMetadata, jsonLdScript } from '@/lib/seo';
 import { siteOrigin } from '@/lib/site';
 import { Section, SectionHead } from '@/components/ui/Section';
@@ -9,7 +9,6 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Reveal } from '@/components/ui/Reveal';
 import { LeadForm } from '@/components/blocks/LeadForm';
-import { CallbackBar } from '@/components/blocks/CallbackBar';
 
 export const metadata: Metadata = pageMetadata({
   site: 'remont',
@@ -152,11 +151,6 @@ export default function RemontStepsPage() {
         </div>
       </Section>
 
-      <CallbackBar
-        phone={REMONT_PHONE}
-        messenger={REMONT_CONTACTS.messengers[0] ?? null}
-        formHref="#zayavka"
-      />
     </>
   );
 }

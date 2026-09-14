@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/Button';
 import { Reveal } from '@/components/ui/Reveal';
 import { CoverageMap } from '@/components/blocks/CoverageMap';
 import { LeadForm } from '@/components/blocks/LeadForm';
-import { CallbackBar } from '@/components/blocks/CallbackBar';
 
 export const metadata: Metadata = pageMetadata({
   site: 'remont',
@@ -148,11 +147,6 @@ export default function RemontContactsPage() {
         </div>
       </Section>
 
-      <CallbackBar
-        phone={REMONT_PHONE}
-        messenger={REMONT_CONTACTS.messengers[0] ?? null}
-        formHref="#zayavka"
-      />
     </>
   );
 }

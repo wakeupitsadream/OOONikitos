@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, Check, Lightbulb } from 'lucide-react';
 import { PUBLISHED_SERVICES, REMONT_SERVICE_BY_SLUG } from '@/content/remont/services';
 import { PRICE_STATUS, WORK_RATES } from '@/content/remont/prices';
-import { REMONT_CONTACTS, REMONT_PHONE } from '@/content/remont/contacts';
+import { REMONT_PHONE } from '@/content/remont/contacts';
 import type { WorkId } from '@/lib/calc/remont';
 import { pageMetadata, jsonLdScript } from '@/lib/seo';
 import { siteOrigin } from '@/lib/site';
@@ -17,7 +17,6 @@ import { Accordion, AccordionItem } from '@/components/ui/Accordion';
 import { Reveal } from '@/components/ui/Reveal';
 import { RemontCalculator } from '@/components/blocks/RemontCalculator';
 import { LeadForm } from '@/components/blocks/LeadForm';
-import { CallbackBar } from '@/components/blocks/CallbackBar';
 import { ServiceIcon } from '@/components/icons';
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -233,11 +232,6 @@ export default async function RemontServicePage({ params }: PageProps) {
         </div>
       </Section>
 
-      <CallbackBar
-        phone={REMONT_PHONE}
-        messenger={REMONT_CONTACTS.messengers[0] ?? null}
-        formHref="#zayavka"
-      />
     </>
   );
 }

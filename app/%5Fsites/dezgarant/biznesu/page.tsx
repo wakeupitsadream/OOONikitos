@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { AlertTriangle, Check, FileText } from 'lucide-react';
 import { OBLIGATIONS, DOCUMENT_PACKAGE, FREQUENCY_NOTE, LICENSE_DETAILS } from '@/content/dezgarant/license';
-import { DEZGARANT_CONTACTS, DEZGARANT_PHONE } from '@/content/dezgarant/contacts';
+import { DEZGARANT_PHONE } from '@/content/dezgarant/contacts';
 import { pageMetadata, jsonLdScript } from '@/lib/seo';
 import { siteOrigin } from '@/lib/site';
 import { Section, SectionHead } from '@/components/ui/Section';
@@ -9,7 +9,6 @@ import { Card } from '@/components/ui/Card';
 import { Reveal } from '@/components/ui/Reveal';
 import { B2bCalculator } from '@/components/blocks/B2bCalculator';
 import { LeadForm } from '@/components/blocks/LeadForm';
-import { CallbackBar } from '@/components/blocks/CallbackBar';
 
 export const metadata: Metadata = pageMetadata({
   site: 'dezgarant',
@@ -175,10 +174,6 @@ export default function BusinessPage() {
         </div>
       </Section>
 
-      <CallbackBar
-        phone={DEZGARANT_PHONE}
-        messenger={DEZGARANT_CONTACTS.messengers[0] ?? null}
-      />
     </>
   );
 }

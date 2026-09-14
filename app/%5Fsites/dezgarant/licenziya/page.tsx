@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Check, ExternalLink, FileCheck2 } from 'lucide-react';
 import { COMPANY, LICENSE } from '@/content/company';
 import { LICENSE_DETAILS, LICENSE_FAQ } from '@/content/dezgarant/license';
-import { DEZGARANT_CONTACTS, DEZGARANT_PHONE } from '@/content/dezgarant/contacts';
+import { DEZGARANT_PHONE } from '@/content/dezgarant/contacts';
 import { pageMetadata, jsonLdScript } from '@/lib/seo';
 import { siteOrigin } from '@/lib/site';
 import { Section, SectionHead } from '@/components/ui/Section';
@@ -12,7 +12,6 @@ import { Accordion, AccordionItem } from '@/components/ui/Accordion';
 import { Reveal } from '@/components/ui/Reveal';
 import { LicenseBlock } from '@/components/blocks/LicenseBlock';
 import { LeadForm } from '@/components/blocks/LeadForm';
-import { CallbackBar } from '@/components/blocks/CallbackBar';
 
 export const metadata: Metadata = pageMetadata({
   site: 'dezgarant',
@@ -207,7 +206,6 @@ export default function LicensePage() {
         </div>
       </Section>
 
-      <CallbackBar phone={DEZGARANT_PHONE} messenger={DEZGARANT_CONTACTS.messengers[0] ?? null} />
     </>
   );
 }

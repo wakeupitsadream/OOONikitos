@@ -18,6 +18,7 @@ export default function RemontLayout({ children }: { children: React.ReactNode }
       contacts={REMONT_CONTACTS}
       logo={<LogoRemont variant="full" className="h-9 md:h-10" />}
       footerLogo={<LogoRemont variant="full" className="h-11" />}
+      withCallbackBar
     >
       {children}
     </SiteShell>

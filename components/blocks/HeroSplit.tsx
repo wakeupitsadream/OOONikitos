@@ -44,7 +44,9 @@ export function HeroSplit() {
             className="eyebrow rise mt-6 text-white/45"
             style={{ '--rise-delay': '230ms' } as React.CSSProperties}
           >
-            Качество <span className="text-[var(--brand-dot)]">•</span> Надёжность{' '}
+            {/* Неразрывный пробел перед точкой: перенос строки не оставляет её висеть в начале */}
+            Качество{' '}
+            <span className="text-[var(--brand-dot)]">•</span> Надёжность{' '}
             <span className="text-[var(--brand-dot)]">•</span> Доверие
           </p>
         </div>

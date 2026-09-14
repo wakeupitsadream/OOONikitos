@@ -8,8 +8,6 @@ import { Section, SectionHead } from '@/components/ui/Section';
 import { Reveal } from '@/components/ui/Reveal';
 import { ServiceGrid } from '@/components/blocks/ServiceGrid';
 import { LeadForm } from '@/components/blocks/LeadForm';
-import { CallbackBar } from '@/components/blocks/CallbackBar';
-import { DEZGARANT_CONTACTS } from '@/content/dezgarant/contacts';
 
 export const metadata: Metadata = pageMetadata({
   site: 'dezgarant',
@@ -77,10 +75,6 @@ export default function ServicesPage() {
         </div>
       </Section>
 
-      <CallbackBar
-        phone={DEZGARANT_PHONE}
-        messenger={DEZGARANT_CONTACTS.messengers[0] ?? null}
-      />
     </>
   );
 }
