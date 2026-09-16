@@ -265,6 +265,23 @@ test.describe('Роутинг по брендам', () => {
     expect(await own.text()).toContain('ДезГарант');
   });
 
+  test('на адресе проекта ?site= и cookie переключают бренды', async ({ request }) => {
+    // belye-niti.vercel.app — боевой адрес проекта до покупки доменов: там должны
+    // открываться все три сайта, иначе бренды на production недостижимы.
+    const host = 'belye-niti.vercel.app';
+    const umbrella = await request.get('/', { headers: { host } });
+    expect(umbrella.status()).toBe(200);
+    expect(await umbrella.text()).toContain('Белые Нити');
+
+    const dez = await request.get(url('/uslugi', 'dezgarant'), { headers: { host } });
+    expect(dez.status(), 'страница бренда по ?site= на адресе проекта').toBe(200);
+    expect(await dez.text()).toContain('ДезГарант');
+
+    const remont = await request.get('/portfolio', { headers: { host, cookie: 'site=remont' } });
+    expect(remont.status(), 'страница бренда по cookie на адресе проекта').toBe(200);
+    expect(await remont.text()).toContain('Бриллиант Ремонт');
+  });
+
   test('переключатель бренда не уводит на чужой домен', async ({ request, baseURL }) => {
     // Важен хост редиректа, а не подстрока: «/%09/evil.com» остаётся путём на нашем домене.
     // Локальный сервер называет себя то localhost, то 127.0.0.1 — оба свои.

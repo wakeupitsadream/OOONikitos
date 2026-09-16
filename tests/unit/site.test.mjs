@@ -15,7 +15,9 @@ test('resolveSiteByHost определяет бренд по собственн�
   assert.equal(resolveSiteByHost('dezgarant56.ru'), 'dezgarant');
   assert.equal(resolveSiteByHost('www.dezgarant56.vercel.app'), 'dezgarant');
   assert.equal(resolveSiteByHost('brilliant-remont56.ru'), 'remont');
-  assert.equal(resolveSiteByHost('belye-niti.vercel.app'), 'belye-niti');
+  // Адрес самого проекта — общий демо-хост, а не бренд: на нём работают ?site= и cookie
+  assert.equal(resolveSiteByHost('belye-niti.vercel.app'), null);
+  assert.equal(resolveSiteByHost('belye-niti.ru'), 'belye-niti');
 });
 
 test('resolveSiteByHost поддерживает поддомены разработки', () => {

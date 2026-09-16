@@ -38,7 +38,10 @@ export const SITES: Record<SiteId, SiteConfig> = {
     name: 'ООО «Белые Нити»',
     shortName: 'Белые Нити',
     slogan: 'Качество. Надёжность. Доверие.',
-    hosts: ['belye-niti.ru', 'belye-niti.vercel.app'],
+    // belye-niti.vercel.app — адрес самого проекта, а не бренда: на нём должны
+    // работать ?site= и cookie для всех трёх сайтов, поэтому его здесь нет.
+    // Зонтик на этом адресе отдаётся правилом-фолбэком в next.config.ts.
+    hosts: ['belye-niti.ru'],
     canonicalEnv: 'NEXT_PUBLIC_URL_BELYE_NITI',
     fallbackCanonical: 'https://belye-niti.vercel.app',
     theme: 'dark',
