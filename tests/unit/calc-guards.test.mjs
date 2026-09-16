@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { calcB2b } from '@/lib/calc/b2b';
 import { calcRemont } from '@/lib/calc/remont';
 import { B2B_OBJECTS, B2B_RATES } from '@/content/dezgarant/prices';
-import { WORK_RATES } from '@/content/remont/prices';
+import { REMONT_RATES, WALL_TARIFFS } from '@/content/remont/prices';
 
 /**
  * Граничные значения на входе библиотек расчёта: формы прикрывают их сами,
@@ -27,19 +27,39 @@ test('B2B: огромная площадь даёт конечное число'
   assert.ok(Number.isFinite(r.perVisit));
 });
 
-test('ремонт: неизвестное состояние стен считается как обычное', () => {
+test('ремонт: неизвестный тариф считается как популярный из прайса', () => {
   const rooms = [{ length: 4, width: 3, height: 2.7, windows: 1, doors: 1 }];
-  const works = ['shtukaturka'];
-  const normal = calcRemont({ rooms, works, condition: 'normal', minOrder: 0 }, WORK_RATES);
-  const unknown = calcRemont({ rooms, works, condition: 'weird', minOrder: 0 }, WORK_RATES);
-  assert.ok(Number.isFinite(unknown.priceFrom) && unknown.priceFrom > 0);
-  assert.equal(unknown.priceFrom, normal.priceFrom);
-  assert.equal(unknown.priceTo, normal.priceTo);
+  const popular = WALL_TARIFFS.find((tariff) => tariff.popular) ?? WALL_TARIFFS[0];
+  const known = calcRemont({ rooms, tariff: popular.id }, REMONT_RATES);
+  const unknown = calcRemont({ rooms, tariff: 'weird' }, REMONT_RATES);
+  assert.ok(Number.isFinite(unknown.total) && unknown.total > 0);
+  assert.equal(unknown.total, known.total);
+  assert.equal(unknown.tariff.id, popular.id);
 });
 
-test('ремонт: проёмов больше, чем стен — площадь не отрицательная', () => {
+test('ремонт: NaN в метрах откосов не ломает итог', () => {
+  const rooms = [{ length: 4, width: 3, height: 2.7, windows: 1, doors: 1 }];
+  const r = calcRemont(
+    { rooms, tariff: 'standard', extras: { slopesMeters: Number.NaN, slopesTariff: 'standard' } },
+    REMONT_RATES,
+  );
+  assert.ok(Number.isFinite(r.total));
+  assert.ok(r.items.every((item) => !item.id.startsWith('slopes')));
+});
+
+test('ремонт: проёмов больше, чем стен — площадь и смета не отрицательные', () => {
   const rooms = [{ length: 1, width: 1, height: 2, windows: 10, doors: 10 }];
-  const r = calcRemont({ rooms, works: ['shtukaturka'], condition: 'normal', minOrder: 0 }, WORK_RATES);
+  const r = calcRemont({ rooms, tariff: 'standard' }, REMONT_RATES);
   assert.equal(r.wallArea, 0);
-  assert.equal(r.priceFrom, 0);
+  assert.equal(r.total, 0);
+  assert.equal(r.items.length, 0);
+});
+
+test('ремонт: реальный прайс согласован сам с собой', () => {
+  // Тарифы отсортированы по цене, и более дорогой тариф не требует большего объёма
+  const sorted = [...WALL_TARIFFS].sort((a, b) => a.pricePerM2 - b.pricePerM2);
+  for (let i = 1; i < sorted.length; i += 1) {
+    assert.ok(sorted[i].minArea <= sorted[i - 1].minArea, `${sorted[i].label}: мин. объём`);
+    assert.ok(sorted[i].guaranteeMonths >= sorted[i - 1].guaranteeMonths, `${sorted[i].label}: гарантия`);
+  }
 });

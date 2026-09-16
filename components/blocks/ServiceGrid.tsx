@@ -10,6 +10,10 @@ type ServiceCardItem = {
   lead: string;
   icon: string;
   priceFrom?: number;
+  /** Готовая подпись цены («от 700 ₽/м²») — приоритетнее priceFrom. */
+  priceLabel?: string;
+  /** Что писать, когда цены нет: по умолчанию «Цена по осмотру». */
+  noPriceLabel?: string;
 };
 
 type ServiceGridProps = {
@@ -40,7 +44,11 @@ export function ServiceGrid({
               <p className="mt-4 font-display text-lg font-extrabold leading-snug">{item.title}</p>
               <p className="mt-2 flex-1 text-[0.9375rem] text-fg-muted">{item.lead}</p>
               <span className="mt-5 flex items-center justify-between gap-3">
-                {item.priceFrom ? (
+                {item.priceLabel ? (
+                  <span className="tabular font-display text-lg font-extrabold text-accent-ink">
+                    {item.priceLabel}
+                  </span>
+                ) : item.priceFrom ? (
                   <span className="tabular font-display text-lg font-extrabold text-accent-ink">
                     {formatPriceFrom(item.priceFrom)}
                     {priceDraft ? (
@@ -50,7 +58,7 @@ export function ServiceGrid({
                     ) : null}
                   </span>
                 ) : (
-                  <span className="text-sm text-fg-subtle">Цена по осмотру</span>
+                  <span className="text-sm text-fg-subtle">{item.noPriceLabel ?? 'Цена по осмотру'}</span>
                 )}
                 <ArrowRight
                   className="size-5 shrink-0 text-accent-ink transition-transform duration-200 group-hover:translate-x-1"

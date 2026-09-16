@@ -1,49 +1,58 @@
 import type { Metadata } from 'next';
-import { ArrowRight, Info } from 'lucide-react';
-import { MIN_ORDER, PRICE_STATUS, WORK_RATES } from '@/content/remont/prices';
+import { ArrowRight, Check, Info } from 'lucide-react';
+import {
+  ALWAYS_INCLUDED,
+  EXTRA_WORKS,
+  SLOPE_TARIFFS,
+  TARIFF_OBJECTS,
+  WALL_TARIFFS,
+} from '@/content/remont/prices';
 import { REMONT_PHONE } from '@/content/remont/contacts';
 import { pageMetadata, jsonLdScript } from '@/lib/seo';
 import { siteOrigin } from '@/lib/site';
-import { formatPrice, pluralize } from '@/lib/plural';
 import { Section, SectionHead } from '@/components/ui/Section';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { DraftMark } from '@/components/ui/Badge';
 import { Reveal } from '@/components/ui/Reveal';
 import { RemontCalculator } from '@/components/blocks/RemontCalculator';
+import {
+  ExtraWorksTable,
+  SlopeStages,
+  SlopeTariffCards,
+  TariffCards,
+} from '@/components/blocks/RemontPricing';
 import { LeadForm } from '@/components/blocks/LeadForm';
 
 export const metadata: Metadata = pageMetadata({
   site: 'remont',
   path: '/ceny',
-  title: 'Цены на отделку стен в Оренбурге — ставки за м²',
+  title: 'Цены на ремонт и отделку в Оренбурге — тарифы за м² и прайс',
   description:
-    'Расценки за квадратный метр стен: штукатурка, шпаклёвка, покраска, обои. Норма выработки, паузы на сушку, минимальный заказ. Смета — в договоре.',
+    'Три тарифа на штукатурку и шпаклёвку стен с фиксированной ценой за м², откосы за погонный метр, прайс дополнительных работ: перегородки, демонтаж, вывоз мусора. Смета в договоре.',
 });
 
-/** Что меняет смету — это ровно те параметры, которые спрашивает калькулятор. */
+/** Что меняет смету — ровно те параметры, которые спрашивает калькулятор. */
 const FACTORS = [
   {
     title: 'Площадь стен, а не комнат',
     text: 'Периметр × высота минус окна и двери. Рулетка на замере проверяет каждую цифру.',
   },
   {
-    title: 'Состав работ',
-    text: 'Штукатурка, шпаклёвка, покраска и обои считаются отдельными строками — вы платите за то, что реально делаем.',
+    title: 'Тариф',
+    text: 'Базовый, Стандарт или Премиум — от штукатурки по маякам до поверхности под покраску со шпаклёвкой. Цена за м² у каждого своя и фиксированная.',
   },
   {
-    title: 'Состояние основания',
-    text: 'Завалы, перепады и осыпающаяся старая отделка требуют большего слоя и времени, поэтому дают надбавку.',
+    title: 'Откосы и дополнительные работы',
+    text: 'Откосы считаются отдельно за погонный метр, демонтаж, перегородки и вывоз мусора — по строкам прайса.',
   },
   {
-    title: 'Высота потолка',
-    text: 'Выше 2,7 м — больше площади и работа с подмостей. Это видно на замере и сразу входит в смету.',
+    title: 'Минимальный объём',
+    text: 'У каждого тарифа свой порог: 100, 50 и 30 м². На маленьком объекте подойдёт тариф с меньшим порогом или расчёт индивидуально.',
   },
 ];
 
 export default function RemontPricesPage() {
   const origin = siteOrigin('remont');
-  const draft = PRICE_STATUS === 'draft';
 
   const breadcrumbs = {
     '@context': 'https://schema.org',
@@ -63,109 +72,83 @@ export default function RemontPricesPage() {
           <SectionHead
             as="h1"
             eyebrow="Цены"
-            title="Расценки за квадратный метр стен"
-            lead="Одна таблица на все работы: ставка, норма выработки и технологическая пауза. По этим же числам считает калькулятор — других цифр «для клиента» у нас нет."
+            title="Три тарифа на стены, откосы и прайс дополнительных работ"
+            lead="Это наш прайс, а не «цены от»: стоимость тарифа за квадратный метр фиксированная, состав напечатан и записывается в договор. По этим же числам считает калькулятор."
           />
         </Reveal>
 
-        <Reveal delay={80} className="mt-8">
-          <div
-            tabIndex={0}
-            role="region"
-            aria-label="Расценки за квадратный метр"
-            className="overflow-x-auto rounded-[var(--radius-md)] border border-border"
-          >
-            <table className="w-full min-w-[38rem] border-collapse text-left text-[0.9375rem]">
-              <caption className="sr-only">
-                Стоимость работ по отделке стен за квадратный метр, норма выработки и пауза на
-                высыхание
-              </caption>
-              <thead>
-                <tr className="border-b border-border bg-surface">
-                  <th scope="col" className="px-4 py-3 font-semibold">
-                    Работа
-                  </th>
-                  <th scope="col" className="px-4 py-3 font-semibold">
-                    Цена за м²
-                  </th>
-                  <th scope="col" className="px-4 py-3 font-semibold">
-                    Норма в день
-                  </th>
-                  <th scope="col" className="px-4 py-3 font-semibold">
-                    Пауза на сушку
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {WORK_RATES.map((rate) => (
-                  <tr key={rate.id} className="border-b border-border last:border-b-0">
-                    <th scope="row" className="px-4 py-3 text-left font-semibold">
-                      {rate.label}
-                    </th>
-                    <td className="tabular px-4 py-3 whitespace-nowrap">
-                      {formatPrice(rate.pricePerM2)}
-                      {rate.status === 'draft' ? <DraftMark /> : null}
-                    </td>
-                    <td className="tabular px-4 py-3 whitespace-nowrap">
-                      {rate.m2PerDay} м²
-                      {rate.status === 'draft' ? <DraftMark /> : null}
-                    </td>
-                    <td className="tabular px-4 py-3 whitespace-nowrap">
-                      {rate.dryingDays > 0
-                        ? pluralize(rate.dryingDays, 'день', 'дня', 'дней')
-                        : 'не нужна'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <Reveal delay={80} className="mt-10">
+          <SectionHead eyebrow="Стены" title="Тарифы за квадратный метр" />
         </Reveal>
-
-        <Reveal delay={120}>
-          <p className="mt-3 text-sm text-fg-subtle sm:hidden">Таблица прокручивается вбок.</p>
+        <Reveal delay={120} className="mt-6">
+          <TariffCards tariffs={WALL_TARIFFS} />
         </Reveal>
-
-        <Reveal delay={140} className="mt-6">
-          <p className="tabular text-[0.9375rem]">
-            Минимальный заказ — <strong>{formatPrice(MIN_ORDER)}</strong>
-            {draft ? <DraftMark /> : null}
-            <span className="block text-sm text-fg-subtle">
-              На маленьком объёме бригада всё равно выезжает, закупает материал и тратит рабочий
-              день.
-            </span>
+        <Reveal delay={160}>
+          <p className="mt-5 text-sm text-fg-subtle">
+            Работаем на объектах: {TARIFF_OBJECTS.join(', ').toLowerCase()}. Минимальный объём
+            заказа указан в карточке тарифа.
           </p>
         </Reveal>
       </Section>
 
-      {/* Честный источник цифр: без этого блока прайс выглядел бы утверждённым */}
-      {draft ? (
-        <Section tone="deep" compact>
-          <Reveal>
-            <Card clipped className="max-w-3xl">
-              <div className="flex items-center gap-3">
-                <Info className="size-5 shrink-0 text-accent-ink" aria-hidden="true" />
-                <h3 className="display-md">Откуда эти цифры</h3>
-              </div>
-              <p className="mt-4 text-[0.9375rem] text-fg-muted">
-                Это рыночный ориентир, а не утверждённый прайс — поэтому рядом с каждой ставкой
-                стоит пометка «уточняется». Поштучных расценок на штукатурку, шпаклёвку, покраску
-                и обои по Оренбургу в открытых источниках нет: конкуренты публикуют только общие
-                ставки отделки «под ключ» — 2 490–3 490 ₽ за м² пола. Из них и выведены значения
-                в таблице.
-              </p>
-              <p className="mt-3 text-[0.9375rem] text-fg-muted">
-                Норма выработки и паузы на сушку — тоже ориентир: реальный темп подтверждает
-                бригада после замера, и срок записывается в договор вместе со сметой.
-              </p>
-              <p className="mt-3 text-[0.9375rem] text-fg-muted">
-                Точная стоимость называется после замера и фиксируется в договоре. Она не растёт,
-                пока не меняется объём работ.
-              </p>
-            </Card>
-          </Reveal>
-        </Section>
-      ) : null}
+      <Section id="otkosy" tone="deep">
+        <Reveal>
+          <SectionHead
+            eyebrow="Откосы на окна и двери"
+            title="Три тарифа за погонный метр"
+            lead="Качественно. Ровно. Надёжно. Откосы считаем отдельно от стен: периметр проёма без низа."
+          />
+        </Reveal>
+        <Reveal delay={80} className="mt-8">
+          <SlopeTariffCards tariffs={SLOPE_TARIFFS} />
+        </Reveal>
+        <Reveal delay={140} className="mt-10">
+          <SectionHead eyebrow="Этапы" title="Как делаем откосы" />
+        </Reveal>
+        <Reveal delay={180} className="mt-6">
+          <SlopeStages />
+        </Reveal>
+      </Section>
+
+      <Section id="dopolnitelno">
+        <Reveal>
+          <SectionHead
+            eyebrow="Дополнительные работы"
+            title="Прайс на всё, что вокруг стен"
+            lead="Перегородки, демонтаж, защита пола и мебели, доставка, грузчики и вывоз мусора — отдельными строками, чтобы в смете не было «прочего»."
+          />
+        </Reveal>
+        <Reveal delay={80} className="mt-8">
+          <ExtraWorksTable works={EXTRA_WORKS} caption="Дополнительные работы и их стоимость" />
+        </Reveal>
+        <Reveal delay={120}>
+          <p className="mt-3 text-sm text-fg-subtle sm:hidden">Таблица прокручивается вбок.</p>
+        </Reveal>
+      </Section>
+
+      <Section tone="deep" compact>
+        <Reveal>
+          <Card clipped className="max-w-3xl">
+            <div className="flex items-center gap-3">
+              <Info className="size-5 shrink-0 text-accent-ink" aria-hidden="true" />
+              <h3 className="display-md">На любом тарифе</h3>
+            </div>
+            <ul className="mt-4 grid gap-2.5 text-[0.9375rem] sm:grid-cols-2">
+              {ALWAYS_INCLUDED.map((item) => (
+                <li key={item} className="flex items-start gap-3">
+                  <Check className="mt-0.5 size-5 shrink-0 text-accent-ink" aria-hidden="true" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-5 border-t border-border pt-4 text-[0.9375rem] text-fg-muted">
+              Покраска стен и поклейка обоев считаются по осмотру: цена зависит от материала и
+              состояния основания. Точная стоимость называется после бесплатного замера и
+              фиксируется в договоре — она не растёт, пока не меняется объём работ.
+            </p>
+          </Card>
+        </Reveal>
+      </Section>
 
       <Section compact>
         <Reveal>
@@ -190,7 +173,7 @@ export default function RemontPricesPage() {
           <SectionHead
             eyebrow="Расчёт"
             title="Посчитайте свои стены"
-            lead="Те же ставки, но уже применённые к вашей квартире: площадь, вилка стоимости и срок в рабочих днях."
+            lead="Те же тарифы, но уже применённые к вашей квартире: площадь, стоимость, срок и гарантия."
           />
         </Reveal>
         <Reveal delay={80} className="mt-8">
@@ -214,14 +197,13 @@ export default function RemontPricesPage() {
           <Reveal delay={80}>
             <LeadForm
               site="remont"
-              service="Смета на отделку стен"
+              service="Смета на ремонт"
               fallbackPhone={REMONT_PHONE}
               submitLabel="Записаться на замер"
             />
           </Reveal>
         </div>
       </Section>
-
     </>
   );
 }

@@ -13,6 +13,9 @@ import {
   calcB2b,
   WINDOW_AREA,
   DOOR_AREA,
+  tariffIncludes,
+  findTariff,
+  guaranteeLabel,
 } from '../helpers/loader.mjs';
 
 /* ------------------------------ ДезГарант ------------------------------ */
@@ -148,15 +151,29 @@ test('нечисловая площадь не превращается в NaN �
 
 /* -------------------------- Бриллиант Ремонт -------------------------- */
 
-const WORKS = [
-  { id: 'shtukaturka', label: 'Штукатурка стен', pricePerM2: 500, m2PerDay: 35, dryingDays: 2, status: 'draft' },
-  { id: 'shpaklevka', label: 'Шпаклёвка', pricePerM2: 350, m2PerDay: 40, dryingDays: 1, status: 'draft' },
-  { id: 'pokraska', label: 'Покраска', pricePerM2: 250, m2PerDay: 50, dryingDays: 1, status: 'draft' },
-  { id: 'oboi', label: 'Поклейка обоев', pricePerM2: 300, m2PerDay: 45, dryingDays: 0, status: 'draft' },
-];
+/** Ставки для тестов — структура как в content/remont/prices.ts. */
+const R = {
+  walls: [
+    { id: 'basic', label: 'Базовый', scope: 'Штукатурка', pricePerM2: 700, tagline: '', description: '', includes: ['маяки'], minArea: 100, guaranteeMonths: 12, termFromDays: 3, status: 'confirmed' },
+    { id: 'standard', label: 'Стандарт', scope: 'Штукатурка', pricePerM2: 900, tagline: '', description: '', inheritsFrom: 'basic', includes: ['уголки'], minArea: 50, guaranteeMonths: 18, termFromDays: 4, popular: true, status: 'confirmed' },
+    { id: 'premium', label: 'Премиум', scope: 'Штукатурка + шпаклёвка', pricePerM2: 1400, tagline: '', description: '', inheritsFrom: 'standard', includes: ['шпаклёвка'], minArea: 30, guaranteeMonths: 24, termFromDays: 5, status: 'confirmed' },
+  ],
+  slopes: [
+    { id: 'standard', label: 'Стандарт', scope: '', pricePerMeter: 1400, includes: [], note: '', status: 'confirmed' },
+    { id: 'premium', label: 'Премиум', scope: '', pricePerMeter: 2500, from: true, includes: [], note: '', status: 'confirmed' },
+  ],
+  extras: [
+    { id: 'demolish-plaster', label: 'Демонтаж старой штукатурки', price: 300, unit: 'м²' },
+    { id: 'remove-wallpaper', label: 'Демонтаж обоев', price: 100, unit: 'м²' },
+    { id: 'electric', label: 'Электромонтажные работы', price: null, note: 'по согласованию' },
+  ],
+};
+
+/** Комната 5 × 4 × 2,7 с окном и дверью: 2·(5+4)·2,7 − 3,6 = 45 м² стен. */
+const ROOM = { length: 5, width: 4, height: 2.7, windows: 1, doors: 1 };
 
 test('площадь стен комнаты считается по периметру за вычетом проёмов', () => {
-  const area = roomWallArea({ length: 5, width: 4, height: 2.7, windows: 1, doors: 1 });
+  const area = roomWallArea(ROOM);
   const expected = 2 * (5 + 4) * 2.7 - WINDOW_AREA - DOOR_AREA;
   assert.equal(Math.round(area * 100) / 100, Math.round(expected * 100) / 100);
 });
@@ -183,50 +200,81 @@ test('оценка площади стен по площади пола даёт
   assert.equal(wallAreaFromFloor(0), 0);
 });
 
-test('калькулятор ремонта складывает выбранные работы', () => {
-  const rooms = [{ length: 5, width: 4, height: 2.7, windows: 1, doors: 1 }];
-  const one = calcRemont({ rooms, works: ['shtukaturka'], condition: 'new' }, WORKS);
-  const two = calcRemont({ rooms, works: ['shtukaturka', 'shpaklevka'], condition: 'new' }, WORKS);
-  assert.ok(two.priceFrom > one.priceFrom);
-  assert.equal(two.items.length, 2);
-  assert.equal(one.items.length, 1);
+test('стоимость стен = площадь × ставка тарифа, Премиум дороже Стандарта', () => {
+  const standard = calcRemont({ rooms: [ROOM], tariff: 'standard' }, R);
+  const premium = calcRemont({ rooms: [ROOM], tariff: 'premium' }, R);
+  assert.equal(standard.wallArea, 45);
+  assert.equal(standard.wallsPrice, 45 * 900);
+  assert.equal(standard.total, standard.wallsPrice);
+  assert.equal(premium.wallsPrice, 45 * 1400);
+  assert.ok(premium.total > standard.total);
+  assert.equal(standard.items.length, 1);
 });
 
-test('плохое состояние поверхности повышает цену', () => {
-  const rooms = [{ length: 5, width: 4, height: 2.7, windows: 1, doors: 1 }];
-  const normal = calcRemont({ rooms, works: ['shtukaturka'], condition: 'new' }, WORKS);
-  const bad = calcRemont({ rooms, works: ['shtukaturka'], condition: 'bad' }, WORKS);
-  assert.ok(bad.priceFrom > normal.priceFrom);
-});
-
-test('минимальный заказ подтягивает мелкую смету', () => {
-  const rooms = [{ length: 1.2, width: 1, height: 2.5, windows: 0, doors: 1 }];
-  const r = calcRemont({ rooms, works: ['pokraska'], condition: 'new', minOrder: 15000 }, WORKS);
-  assert.equal(r.minOrderApplied, true);
-  assert.ok(r.priceFrom >= 15000);
-});
-
-test('пустой выбор работ даёт нулевую смету без минималки', () => {
-  const rooms = [{ length: 5, width: 4, height: 2.7, windows: 1, doors: 1 }];
-  const r = calcRemont({ rooms, works: [], condition: 'new', minOrder: 15000 }, WORKS);
-  assert.equal(r.priceFrom, 0);
-  assert.equal(r.minOrderApplied, false);
-  assert.equal(r.workDays, 0);
-});
-
-test('срок растёт вместе с площадью и учитывает сушку', () => {
-  const small = calcRemont(
-    { rooms: [{ length: 3, width: 3, height: 2.7, windows: 1, doors: 1 }], works: ['shtukaturka'], condition: 'new' },
-    WORKS,
+test('объём ниже минимального помечается и предлагается подходящий тариф', () => {
+  // 45 м² на Базовом (мин. 100): Стандарт (50) тоже не подходит, Премиум (30) — да
+  const basic = calcRemont({ rooms: [ROOM], tariff: 'basic' }, R);
+  assert.equal(basic.belowMinArea, true);
+  assert.equal(basic.suggestedTariff?.id, 'premium');
+  // 60+ м² на Базовом → предлагается Стандарт (самый доступный подходящий)
+  const bigger = calcRemont(
+    { rooms: [ROOM, { length: 3, width: 2, height: 2.7, windows: 0, doors: 1 }], tariff: 'basic' },
+    R,
   );
-  const big = calcRemont(
-    { rooms: [{ length: 8, width: 6, height: 3, windows: 2, doors: 1 }], works: ['shtukaturka'], condition: 'new' },
-    WORKS,
+  assert.ok(bigger.wallArea >= 50 && bigger.wallArea < 100, `площадь ${bigger.wallArea}`);
+  assert.equal(bigger.suggestedTariff?.id, 'standard');
+  // Премиум подходит для 45 м² — пометки нет
+  assert.equal(calcRemont({ rooms: [ROOM], tariff: 'premium' }, R).belowMinArea, false);
+  // 20 м² не укладываются ни в один тариф
+  const tiny = calcRemont(
+    { rooms: [{ length: 2, width: 2, height: 2.5, windows: 0, doors: 1 }], tariff: 'premium' },
+    R,
   );
-  assert.ok(big.workDays > small.workDays);
-  assert.ok(small.workDays >= 2, 'технологическая пауза входит в срок');
+  assert.equal(tiny.belowMinArea, true);
+  assert.equal(tiny.suggestedTariff, null);
 });
 
+test('дополнительные работы добавляются отдельными строками', () => {
+  const r = calcRemont(
+    {
+      rooms: [ROOM],
+      tariff: 'standard',
+      extras: { demolishPlaster: true, removeWallpaper: true, slopesMeters: 10, slopesTariff: 'premium' },
+    },
+    R,
+  );
+  const byId = Object.fromEntries(r.items.map((item) => [item.id, item.price]));
+  assert.equal(byId['demolish-plaster'], 45 * 300);
+  assert.equal(byId['remove-wallpaper'], 45 * 100);
+  assert.equal(byId['slopes-premium'], 10 * 2500);
+  assert.equal(r.total, 45 * 900 + 45 * 300 + 45 * 100 + 10 * 2500);
+});
+
+test('неизвестный тариф считается как популярный', () => {
+  const weird = calcRemont({ rooms: [ROOM], tariff: 'weird' }, R);
+  assert.equal(weird.tariff.id, 'standard');
+  assert.equal(findTariff(R.walls, 'nope').id, 'standard');
+});
+
+test('пустые комнаты дают нулевую смету без строк', () => {
+  const r = calcRemont({ rooms: [], tariff: 'standard' }, R);
+  assert.equal(r.total, 0);
+  assert.equal(r.items.length, 0);
+  assert.equal(r.belowMinArea, false);
+});
+
+test('состав тарифа накапливается по наследованию', () => {
+  assert.deepEqual(tariffIncludes(R.walls, 'basic'), ['маяки']);
+  assert.deepEqual(tariffIncludes(R.walls, 'premium'), ['маяки', 'уголки', 'шпаклёвка']);
+});
+
+test('гарантия читается по-человечески', () => {
+  assert.equal(guaranteeLabel(12), '1 год');
+  assert.equal(guaranteeLabel(18), '1,5 года');
+  assert.equal(guaranteeLabel(24), '2 года');
+  assert.equal(guaranteeLabel(36), '3 года');
+  assert.equal(guaranteeLabel(6), '6 мес.');
+});
 /* -------------------------------- B2B --------------------------------- */
 
 const B2B_RATES = { baseVisit: 3500, includedArea: 100, perM2: 12, status: 'draft' };

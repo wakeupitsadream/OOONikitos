@@ -221,6 +221,26 @@ test.describe('Диагностика ДезГаранта', () => {
   });
 });
 
+test.describe('Калькулятор Ремонта', () => {
+  test('смена тарифа меняет стоимость, откосы добавляют строку', async ({ page }) => {
+    await page.goto(url('/', 'remont'), { waitUntil: 'load' });
+    const block = page.locator('#raschet');
+    await block.scrollIntoViewIfNeeded();
+    // data-ready ставится в эффекте — значит калькулятор гидрирован
+    await expect(block.locator('[data-ready="true"]')).toHaveCount(1);
+
+    const total = block.locator('[data-total]');
+    const initial = (await total.textContent()) ?? '';
+    expect(initial).toMatch(/\d/);
+
+    await block.getByText('Премиум', { exact: true }).click();
+    await expect(total).not.toHaveText(initial);
+
+    await block.getByLabel('Откосы, погонных метров').fill('12');
+    await expect(block.getByText(/Откосы — тариф/)).toBeVisible();
+  });
+});
+
 test.describe('Роутинг по брендам', () => {
   test('разные бренды отдают разный контент на одном хосте', async ({ page }) => {
     await page.goto(url('/', 'dezgarant'), { waitUntil: 'load' });

@@ -1,86 +1,40 @@
 import Link from 'next/link';
-import { ArrowRight, Check, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Check, ShieldCheck, Sparkles } from 'lucide-react';
 import { COMPANY } from '@/content/company';
 import { REMONT_PHONE } from '@/content/remont/contacts';
-import { GUARANTEES, PUBLISHED_SERVICES, REMONT_FAQ, STEPS } from '@/content/remont/services';
-import { MIN_ORDER, PRICE_STATUS, ROOM_PRESETS, WORK_RATES } from '@/content/remont/prices';
+import {
+  CLEANING,
+  GUARANTEES,
+  PRINCIPLES,
+  PUBLISHED_SERVICES,
+  REMONT_FAQ,
+  STEPS,
+} from '@/content/remont/services';
+import { ALWAYS_INCLUDED, SLOPE_TARIFFS, TARIFF_OBJECTS, WALL_TARIFFS } from '@/content/remont/prices';
 import { HAS_PORTFOLIO, PORTFOLIO } from '@/content/remont/portfolio';
-import { calcRemont, totalWallArea, type Room } from '@/lib/calc/remont';
+import { guaranteeLabel } from '@/lib/calc/remont';
 import { jsonLdScript } from '@/lib/seo';
 import { siteOrigin, siteUrl } from '@/lib/site';
-import { formatPrice, pluralize } from '@/lib/plural';
+import { formatPrice } from '@/lib/plural';
 import { Section, SectionHead } from '@/components/ui/Section';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Accordion, AccordionItem } from '@/components/ui/Accordion';
-import { DraftMark } from '@/components/ui/Badge';
 import { Reveal } from '@/components/ui/Reveal';
 import { HeroRemont } from '@/components/blocks/HeroRemont';
 import { RemontCalculator } from '@/components/blocks/RemontCalculator';
+import { TariffCards, TariffFactsTable, servicePriceLabel } from '@/components/blocks/RemontPricing';
 import { BeforeAfter } from '@/components/blocks/BeforeAfter';
 import { ServiceGrid } from '@/components/blocks/ServiceGrid';
 import { LeadForm } from '@/components/blocks/LeadForm';
 
 /**
- * Главная «Бриллиант Ремонт» (§6.2 плана).
- * Ни одной цифры «из головы»: сроки в таблице считает тот же lib/calc/remont,
- * что и калькулятор, гарантии — дословно с визитки, проценты поэтапной
- * оплаты не выдуманы и потому не показаны.
+ * Главная «Бриллиант Ремонт» (§6.2 плана + правки владельца от 15.09.2026).
+ * Ни одной цифры «из головы»: тарифы, сроки, гарантии и состав работ —
+ * с листовок владельца (content/remont/prices.ts), обещания — с визитки.
  */
 
-const PRESETS = new Map(ROOM_PRESETS.map((preset) => [preset.id, preset]));
-
-function roomsOf(ids: string[]): Room[] {
-  return ids.flatMap((id) => {
-    const preset = PRESETS.get(id);
-    return preset
-      ? [
-          {
-            length: preset.length,
-            width: preset.width,
-            height: preset.height,
-            windows: preset.windows,
-            doors: preset.doors,
-          },
-        ]
-      : [];
-  });
-}
-
-/** Типовые объекты собраны из тех же комнат, что предлагает калькулятор. */
-const TYPICAL_OBJECTS = [
-  { id: 'room', label: 'Одна комната', composition: 'комната 18 м²', rooms: ['room-medium'] },
-  {
-    id: 'flat-1',
-    label: 'Однокомнатная квартира',
-    composition: 'комната 18 м² + кухня 10 м² + прихожая 6 м²',
-    rooms: ['room-medium', 'kitchen', 'hall'],
-  },
-  {
-    id: 'flat-2',
-    label: 'Двухкомнатная квартира',
-    composition: 'комнаты 18 и 12 м² + кухня 10 м² + прихожая 6 м²',
-    rooms: ['room-medium', 'room-small', 'kitchen', 'hall'],
-  },
-  { id: 'bath', label: 'Санузел', composition: 'санузел 4 м²', rooms: ['bath'] },
-];
-
-function timingRows() {
-  return TYPICAL_OBJECTS.map((object) => {
-    const rooms = roomsOf(object.rooms);
-    const base = { rooms, condition: 'normal' as const, minOrder: MIN_ORDER };
-    const plaster = calcRemont({ ...base, works: ['shtukaturka'] }, WORK_RATES);
-    const full = calcRemont({ ...base, works: ['shtukaturka', 'shpaklevka'] }, WORK_RATES);
-    return {
-      id: object.id,
-      label: object.label,
-      composition: object.composition,
-      area: Math.round(totalWallArea(rooms)),
-      plasterDays: plaster.workDays,
-      fullDays: full.workDays,
-    };
-  });
-}
+const NBSP = ' ';
 
 function jsonLd() {
   const origin = siteOrigin('remont');
@@ -91,7 +45,7 @@ function jsonLd() {
       '@id': `${origin}#business`,
       name: 'Бриллиант Ремонт',
       description:
-        'Штукатурка, шпаклёвка, покраска стен и поклейка обоев в Оренбурге. Фиксированная смета в договоре.',
+        'Ремонт квартир и домов под ключ в Оренбурге: штукатурка по тарифам, шпаклёвка, откосы, перегородки, обои и покраска. Фиксированная смета в договоре.',
       url: origin,
       slogan: 'Быстро, ровно, надолго',
       telephone: REMONT_PHONE ?? undefined,
@@ -105,12 +59,22 @@ function jsonLd() {
       },
       hasOfferCatalog: {
         '@type': 'OfferCatalog',
-        name: 'Отделка стен',
-        itemListElement: PUBLISHED_SERVICES.map((service) => ({
-          '@type': 'Offer',
-          itemOffered: { '@type': 'Service', name: service.title },
-          url: `${origin}/uslugi/${service.slug}`,
-        })),
+        name: 'Ремонт и отделка',
+        itemListElement: [
+          ...WALL_TARIFFS.map((tariff) => ({
+            '@type': 'Offer',
+            name: `${tariff.scope} — тариф «${tariff.label}»`,
+            priceCurrency: 'RUB',
+            price: tariff.pricePerM2,
+            unitText: 'м² стен',
+            url: `${origin}/ceny`,
+          })),
+          ...PUBLISHED_SERVICES.map((service) => ({
+            '@type': 'Offer',
+            itemOffered: { '@type': 'Service', name: service.title },
+            url: `${origin}/uslugi/${service.slug}`,
+          })),
+        ],
       },
     },
     {
@@ -131,8 +95,11 @@ export default function RemontHome() {
     title: service.title,
     lead: service.lead,
     icon: service.icon,
+    priceLabel: servicePriceLabel(service),
+    noPriceLabel: 'По смете после замера',
   }));
-  const rows = timingRows();
+  const slopeFrom = Math.min(...SLOPE_TARIFFS.map((tariff) => tariff.pricePerMeter));
+  const maxGuarantee = Math.max(...WALL_TARIFFS.map((tariff) => tariff.guaranteeMonths));
 
   return (
     <>
@@ -140,13 +107,13 @@ export default function RemontHome() {
 
       <HeroRemont />
 
-      {/* Вау-фича: калькулятор стен */}
+      {/* Вау-фича: калькулятор стен по тарифам */}
       <Section id="raschet" tone="deep">
         <Reveal>
           <SectionHead
             eyebrow="Расчёт за минуту"
             title="Посчитайте стены до звонка"
-            lead="Добавьте комнаты, отметьте работы — покажем площадь стен, вилку стоимости и срок в рабочих днях. Без «оставьте заявку, менеджер перезвонит»."
+            lead="Добавьте комнаты, выберите тариф — покажем площадь стен, стоимость по прайсу, срок и гарантию. Без «оставьте заявку, менеджер перезвонит»."
           />
         </Reveal>
         <Reveal delay={80} className="mt-8">
@@ -154,32 +121,44 @@ export default function RemontHome() {
         </Reveal>
       </Section>
 
+      {/* Тарифы — с листовки владельца */}
+      <Section id="tarify">
+        <Reveal>
+          <SectionHead
+            eyebrow="Тарифы"
+            title="Три тарифа на стены — цена за м² фиксированная"
+            lead="Состав каждого тарифа напечатан в нашем прайсе и записывается в договор. Выбираете уровень подготовки — от ровных стен под обои до поверхности под покраску."
+          />
+        </Reveal>
+        <Reveal delay={80} className="mt-8">
+          <TariffCards tariffs={WALL_TARIFFS} />
+        </Reveal>
+        <Reveal delay={140} className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <p className="text-sm text-fg-subtle">Работаем на объектах: {TARIFF_OBJECTS.join(', ').toLowerCase()}.</p>
+          <Button href="/ceny" variant="outline">
+            {`Откосы от ${formatPrice(slopeFrom)}/п.${NBSP}м и прайс доп. работ`}
+            <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
+          </Button>
+        </Reveal>
+      </Section>
+
       {/* Услуги */}
-      <Section id="uslugi">
+      <Section id="uslugi" tone="deep">
         <Reveal>
           <SectionHead
             eyebrow="Услуги"
-            title="Что делаем со стенами"
-            lead="Четыре работы, которые закрывают отделку стен от голого основания до готовой поверхности. Берёмся и за отдельный этап, и за всю цепочку."
+            title="Ремонт под ключ или отдельный этап"
+            lead="Берёмся за квартиру или дом целиком — от демонтажа до уборки — и за отдельную работу: штукатурку, откосы, шпаклёвку, перегородки, обои или покраску."
           />
         </Reveal>
         <Reveal delay={80} className="mt-8">
           <ServiceGrid items={services} basePath="/uslugi" />
         </Reveal>
-        <Reveal delay={140} className="mt-8 flex flex-wrap items-center gap-4">
-          <Button href="/ceny" variant="outline" size="lg">
-            Расценки за м²
-            <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
-          </Button>
-          <p className="text-sm text-fg-subtle">
-            Стоимость считается за квадратный метр стен, а не «за комнату».
-          </p>
-        </Reveal>
       </Section>
 
       {/* Портфолио — только с реальными фото объектов */}
       {HAS_PORTFOLIO ? (
-        <Section id="portfolio" tone="deep">
+        <Section id="portfolio">
           <Reveal>
             <SectionHead eyebrow="Работы" title="Было — стало" />
           </Reveal>
@@ -204,9 +183,9 @@ export default function RemontHome() {
         </Section>
       ) : null}
 
-      {/* Гарантии — дословно с оборота визитки.
+      {/* Гарантии — с визитки и листовки.
           Светлая мраморная панель: лицевая сторона визитки внутри чёрного сайта. */}
-      <Section id="garantii" tone="deep">
+      <Section id="garantii">
         <Reveal>
           <div className="clip-corner relative overflow-hidden bg-[var(--color-marble)] p-6 text-[var(--color-ink)] md:p-10 lg:p-14">
             <span
@@ -217,10 +196,10 @@ export default function RemontHome() {
               <p className="eyebrow text-[color-mix(in_srgb,var(--color-ink)_65%,transparent)]">
                 Мы гарантируем
               </p>
-              <h2 className="display-lg mt-3">Четыре обещания с нашей визитки</h2>
+              <h2 className="display-lg mt-3">Гарантия прописана в договоре, а не на словах</h2>
               <p className="mt-4 text-[1.0625rem] leading-relaxed text-[color-mix(in_srgb,var(--color-ink)_78%,transparent)]">
-                Это не рекламные формулировки, а то, что напечатано на карточке, которую мы
-                отдаём клиенту в руки.
+                Четыре обещания напечатаны на нашей визитке, сроки гарантии — в прайсе:
+                {` до ${guaranteeLabel(maxGuarantee)} на стены по тарифам и до 3 лет на откосы.`}
               </p>
             </header>
 
@@ -240,31 +219,37 @@ export default function RemontHome() {
               ))}
             </ul>
 
-            <p className="relative mt-9 flex items-center gap-3 border-t border-[color-mix(in_srgb,var(--color-ink)_15%,transparent)] pt-5 text-sm text-[color-mix(in_srgb,var(--color-ink)_70%,transparent)]">
-              <ShieldCheck
-                className="size-5 shrink-0 text-[var(--color-gold-deep)]"
-                aria-hidden="true"
-              />
-              Всё перечисленное закрепляется договором — это проверяется до начала работ.
-            </p>
+            <ul className="relative mt-9 grid gap-2.5 border-t border-[color-mix(in_srgb,var(--color-ink)_15%,transparent)] pt-6 text-sm text-[color-mix(in_srgb,var(--color-ink)_78%,transparent)] sm:grid-cols-2 lg:grid-cols-3">
+              {PRINCIPLES.map((item) => (
+                <li key={item} className="flex items-start gap-2.5">
+                  <ShieldCheck
+                    className="mt-0.5 size-4 shrink-0 text-[var(--color-gold-deep)]"
+                    aria-hidden="true"
+                  />
+                  {item}
+                </li>
+              ))}
+            </ul>
           </div>
         </Reveal>
       </Section>
 
-      {/* Этапы */}
-      <Section id="etapy">
+      {/* Этапы — шесть шагов с листовки */}
+      <Section id="etapy" tone="deep">
         <Reveal>
           <SectionHead
-            eyebrow="Как идёт работа"
-            title="Пять этапов — от замера до акта"
-            lead="Каждый этап заканчивается результатом, который можно проверить."
+            eyebrow="Как мы работаем"
+            title="Шесть шагов — от заявки до сдачи объекта"
+            lead="Каждый шаг заканчивается результатом, который можно проверить: смета, договор, акт."
           />
         </Reveal>
-        <ol className="mt-10 grid gap-5 md:grid-cols-3 lg:grid-cols-5">
+        <ol className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-6">
           {STEPS.map((step, index) => (
-            <Reveal key={step.title} delay={index * 70}>
+            <Reveal key={step.title} delay={index * 60}>
               <li className="h-full border-t-2 border-accent pt-4">
-                <span className="eyebrow text-accent-ink">Этап {index + 1}</span>
+                <span className="eyebrow text-accent-ink">
+                  {`Шаг ${String(index + 1).padStart(2, '0')}`}
+                </span>
                 <p className="mt-2 font-display text-base font-extrabold leading-snug">
                   {step.title}
                 </p>
@@ -281,14 +266,14 @@ export default function RemontHome() {
         </Reveal>
       </Section>
 
-      {/* Поэтапная оплата: принцип без выдуманных процентов.
-          TODO_OWNER: схема «аванс X % → этап → приёмка» ждёт цифр владельца. */}
-      <Section id="oplata" tone="deep">
+      {/* Поэтапная оплата: принцип с листовки («оплата поэтапно, без переплат»),
+          проценты владелец не публикует. */}
+      <Section id="oplata">
         <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:gap-14">
           <Reveal>
             <SectionHead
               eyebrow="Оплата"
-              title="Не платите за этап, пока не приняли предыдущий"
+              title="Поэтапно и без переплат"
               lead="Деньги идут за результатом, а не вперёд него. Порядок платежей прописывается в договоре вместе с составом и сроками работ."
             />
           </Reveal>
@@ -316,69 +301,28 @@ export default function RemontHome() {
         </div>
       </Section>
 
-      {/* Сроки: те же формулы, что в калькуляторе */}
-      <Section id="sroki">
+      {/* Сроки, объём, гарантия — из прайса, не из «средних по рынку» */}
+      <Section id="sroki" tone="deep">
         <Reveal>
           <SectionHead
-            eyebrow="Сроки"
-            title="Сколько дней занимают типовые объекты"
-            lead="Это не «в среднем по рынку», а расчёт по нашей норме выработки и площади стен — тот же, что выдаёт калькулятор выше. Технологические паузы на сушку уже внутри."
+            eyebrow="Сроки и объём"
+            title="Что зависит от тарифа"
+            lead="Минимальный объём заказа, срок старта работ и срок гарантии — по прайсу. Точная длительность считается от площади после замера и записывается в договор."
           />
         </Reveal>
         <Reveal delay={80} className="mt-8">
-          <div
-            tabIndex={0}
-            role="region"
-            aria-label="Сроки по типовым объектам"
-            className="overflow-x-auto rounded-[var(--radius-md)] border border-border"
-          >
-            <table className="w-full min-w-[34rem] border-collapse text-left text-[0.9375rem]">
-              <thead>
-                <tr className="border-b border-border bg-surface">
-                  <th scope="col" className="px-4 py-3 font-semibold">
-                    Объект
-                  </th>
-                  <th scope="col" className="px-4 py-3 font-semibold">
-                    Стены
-                  </th>
-                  <th scope="col" className="px-4 py-3 font-semibold">
-                    Штукатурка
-                  </th>
-                  <th scope="col" className="px-4 py-3 font-semibold">
-                    + шпаклёвка
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.id} className="border-b border-border last:border-b-0">
-                    <td className="px-4 py-3">
-                      <span className="font-semibold">{row.label}</span>
-                      <span className="block text-sm text-fg-subtle">{row.composition}</span>
-                    </td>
-                    <td className="tabular px-4 py-3 whitespace-nowrap">{row.area} м²</td>
-                    <td className="tabular px-4 py-3 whitespace-nowrap">
-                      {pluralize(row.plasterDays, 'день', 'дня', 'дней')}
-                    </td>
-                    <td className="tabular px-4 py-3 whitespace-nowrap">
-                      {pluralize(row.fullDays, 'день', 'дня', 'дней')}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <TariffFactsTable tariffs={WALL_TARIFFS} />
         </Reveal>
         <Reveal delay={140}>
-          <p className="mt-3 text-sm text-fg-subtle sm:hidden">
-            Таблица прокручивается вбок.
-          </p>
-          <p className="mt-5 max-w-3xl text-sm text-fg-subtle">
-            Дни рабочие. Высота потолка 2,7 м, из площади вычтены окна и двери.
-            {PRICE_STATUS === 'draft'
-              ? ' Норма выработки пока черновая — после подтверждения владельцем таблица пересчитается автоматически.'
-              : ''}
-          </p>
+          <p className="mt-3 text-sm text-fg-subtle sm:hidden">Таблица прокручивается вбок.</p>
+          <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-fg-muted">
+            {ALWAYS_INCLUDED.map((item) => (
+              <li key={item} className="flex items-center gap-2">
+                <Check className="size-4 shrink-0 text-accent-ink" aria-hidden="true" />
+                {item}
+              </li>
+            ))}
+          </ul>
         </Reveal>
       </Section>
 
@@ -386,7 +330,7 @@ export default function RemontHome() {
           Без файлов секция «Документы» не рендерится. */}
 
       {/* Один подрядчик: ремонт и обработка помещения */}
-      <Section id="odin-podryadchik" tone="deep">
+      <Section id="odin-podryadchik">
         <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-14">
           <Reveal>
             <SectionHead
@@ -412,7 +356,7 @@ export default function RemontHome() {
               <p className="eyebrow text-accent-ink">Что это даёт</p>
               <ul className="mt-4 space-y-2.5 text-[0.9375rem]">
                 {[
-                  'Один договор и одно юридическое лицо на обе задачи',
+                  'Одно юридическое лицо на обе задачи — договор общий или отдельный на каждую, как удобнее',
                   'Не нужно искать вторую бригаду и согласовывать доступ',
                   'Обработка планируется в график ремонта, а не «когда получится»',
                 ].map((item) => (
@@ -425,6 +369,40 @@ export default function RemontHome() {
             </Card>
           </Reveal>
         </div>
+      </Section>
+
+      {/* Акцент владельца: полноценная уборка после работ — в самом конце */}
+      <Section id="uborka" tone="deep">
+        <Reveal>
+          <div className="relative overflow-hidden rounded-[var(--radius-md)] border border-accent/40 bg-surface p-6 md:p-10">
+            <span
+              className="pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-accent/10 blur-3xl"
+              aria-hidden="true"
+            />
+            <div className="relative grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:gap-14">
+              <div>
+                <p className="eyebrow flex items-center gap-2 text-accent-ink">
+                  <Sparkles className="size-4" aria-hidden="true" />
+                  Уборка после работ
+                </p>
+                <h2 className="display-lg mt-3">{CLEANING.title}</h2>
+                <p className="lead mt-4">{CLEANING.lead}</p>
+                <p className="mt-4 text-sm text-fg-subtle">{CLEANING.extra}</p>
+              </div>
+              <ul className="space-y-3">
+                {CLEANING.byTariff.map((row) => (
+                  <li
+                    key={row.tariff}
+                    className="flex items-start gap-4 rounded-[var(--radius-sm)] border border-border bg-bg-deep px-4 py-3"
+                  >
+                    <span className="eyebrow mt-0.5 shrink-0 text-fg-subtle">{row.tariff}</span>
+                    <span className="text-[0.9375rem]">{row.text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </Reveal>
       </Section>
 
       {/* FAQ */}
@@ -459,7 +437,7 @@ export default function RemontHome() {
             <SectionHead
               eyebrow="Заявка"
               title="Запишитесь на замер"
-              lead="Приедем, измерим стены, проверим геометрию основания и посчитаем смету. Замер бесплатный."
+              lead="Приедем, измерим стены, проверим геометрию основания и посчитаем смету по тарифу. Замер бесплатный."
             />
             <p className="mt-8 max-w-sm text-[0.9375rem] text-fg-muted">
               {COMPANY.shortLegalName} · ИНН {COMPANY.inn}
@@ -467,8 +445,7 @@ export default function RemontHome() {
               Работаем с физическими и юридическими лицами: договор, смета, акты.
             </p>
             <p className="tabular mt-4 text-sm text-fg-subtle">
-              Минимальный заказ — {formatPrice(MIN_ORDER)}
-              {PRICE_STATUS === 'draft' ? <DraftMark /> : null}
+              {`Минимальный объём — от 30${NBSP}м² стен по тарифу «Премиум», от 50${NBSP}м² — «Стандарт», от 100${NBSP}м² — «Базовый».`}
             </p>
           </Reveal>
           <Reveal delay={80}>
@@ -480,7 +457,6 @@ export default function RemontHome() {
           </Reveal>
         </div>
       </Section>
-
     </>
   );
 }

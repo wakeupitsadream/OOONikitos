@@ -80,7 +80,8 @@ export const SITES: Record<SiteId, SiteConfig> = {
     name: 'Бриллиант Ремонт — направление ООО «Белые Нити»',
     shortName: 'Бриллиант Ремонт',
     slogan: 'Быстро, ровно, надолго',
-    hosts: ['brilliant-remont56.ru', 'brilliant-remont56.vercel.app'],
+    // brilliant-remont.ru напечатан на листовке владельца — домен его
+    hosts: ['brilliant-remont.ru', 'brilliant-remont56.ru', 'brilliant-remont56.vercel.app'],
     canonicalEnv: 'NEXT_PUBLIC_URL_REMONT',
     fallbackCanonical: 'https://brilliant-remont56.vercel.app',
     theme: 'dark',

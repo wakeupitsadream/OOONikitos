@@ -3,23 +3,30 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft, Check, Lightbulb } from 'lucide-react';
 import { PUBLISHED_SERVICES, REMONT_SERVICE_BY_SLUG } from '@/content/remont/services';
-import { PRICE_STATUS, WORK_RATES } from '@/content/remont/prices';
+import { EXTRA_WORKS, SLOPE_TARIFFS, WALL_TARIFFS } from '@/content/remont/prices';
 import { REMONT_PHONE } from '@/content/remont/contacts';
-import type { WorkId } from '@/lib/calc/remont';
 import { pageMetadata, jsonLdScript } from '@/lib/seo';
 import { siteOrigin } from '@/lib/site';
-import { formatPrice, pluralize } from '@/lib/plural';
+import { formatPrice } from '@/lib/plural';
 import { Section, SectionHead } from '@/components/ui/Section';
 import { Card } from '@/components/ui/Card';
 import { Diamond } from '@/components/ui/Diamond';
-import { DraftMark } from '@/components/ui/Badge';
 import { Accordion, AccordionItem } from '@/components/ui/Accordion';
 import { Reveal } from '@/components/ui/Reveal';
 import { RemontCalculator } from '@/components/blocks/RemontCalculator';
+import {
+  ExtraWorksTable,
+  SlopeStages,
+  SlopeTariffCards,
+  TariffCards,
+  extraPriceLabel,
+} from '@/components/blocks/RemontPricing';
 import { LeadForm } from '@/components/blocks/LeadForm';
 import { ServiceIcon } from '@/components/icons';
 
 type PageProps = { params: Promise<{ slug: string }> };
+
+const NBSP = ' ';
 
 /** Публикуются только подтверждённые услуги — см. content/remont/services.ts. */
 export function generateStaticParams() {
@@ -39,15 +46,51 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   });
 }
 
+/** Строка цены под заголовком и предложения для разметки — по типу прайса услуги. */
+function pricing(service: NonNullable<ReturnType<typeof REMONT_SERVICE_BY_SLUG.get>>) {
+  if (service.pricing === 'walls') {
+    const from = Math.min(...WALL_TARIFFS.map((tariff) => tariff.pricePerM2));
+    return {
+      line: `от ${formatPrice(from)}/м² стен`,
+      offers: WALL_TARIFFS.map((tariff) => ({
+        '@type': 'Offer',
+        name: `${tariff.scope} — тариф «${tariff.label}»`,
+        priceCurrency: 'RUB',
+        price: tariff.pricePerM2,
+        unitText: 'м² стен',
+        availability: 'https://schema.org/InStock',
+      })),
+    };
+  }
+  if (service.pricing === 'slopes') {
+    const from = Math.min(...SLOPE_TARIFFS.map((tariff) => tariff.pricePerMeter));
+    return {
+      line: `от ${formatPrice(from)}/п.${NBSP}м`,
+      offers: SLOPE_TARIFFS.map((tariff) => ({
+        '@type': 'Offer',
+        name: `Откосы — тариф «${tariff.label}»`,
+        priceCurrency: 'RUB',
+        price: tariff.pricePerMeter,
+        unitText: 'погонный метр',
+        availability: 'https://schema.org/InStock',
+      })),
+    };
+  }
+  if (service.pricing === 'extras') {
+    const rows = EXTRA_WORKS.filter((work) => service.extraIds?.includes(work.id));
+    const first = rows.find((work) => work.price !== null);
+    return { line: first ? extraPriceLabel(first) : null, offers: [] };
+  }
+  return { line: null, offers: [] };
+}
+
 export default async function RemontServicePage({ params }: PageProps) {
   const { slug } = await params;
   const service = REMONT_SERVICE_BY_SLUG.get(slug);
   if (!service) notFound();
 
   const origin = siteOrigin('remont');
-  // Слаги услуг совпадают с id расценок: страница знает свою ставку.
-  const rate = WORK_RATES.find((item) => item.id === slug);
-  const initialWorks: WorkId[] = rate ? [rate.id] : ['shtukaturka'];
+  const price = pricing(service);
 
   const jsonLd = [
     {
@@ -58,22 +101,12 @@ export default async function RemontServicePage({ params }: PageProps) {
       serviceType: service.title,
       areaServed: { '@type': 'AdministrativeArea', name: 'Оренбургская область' },
       provider: {
-        '@type': 'HomeAndConstructionBusiness',
+        '@type': 'Organization',
         name: 'Бриллиант Ремонт',
         '@id': `${origin}#business`,
       },
       url: `${origin}/uslugi/${service.slug}`,
-      ...(rate
-        ? {
-            offers: {
-              '@type': 'Offer',
-              priceCurrency: 'RUB',
-              price: rate.pricePerM2,
-              unitText: 'м² стен',
-              availability: 'https://schema.org/InStock',
-            },
-          }
-        : {}),
+      ...(price.offers.length > 0 ? { offers: price.offers } : {}),
     },
     {
       '@context': 'https://schema.org',
@@ -128,13 +161,18 @@ export default async function RemontServicePage({ params }: PageProps) {
             </div>
           </div>
 
-          {rate ? (
+          {price.line ? (
             <p className="tabular mt-7 font-display text-2xl font-extrabold text-accent-ink">
-              {formatPrice(rate.pricePerM2)}
-              <span className="text-base font-semibold text-fg-subtle"> / м² стен</span>
-              {rate.status === 'draft' || PRICE_STATUS === 'draft' ? <DraftMark /> : null}
+              {price.line}
+              <span className="block text-sm font-normal text-fg-subtle">
+                фиксированная стоимость работ по прайсу
+              </span>
             </p>
-          ) : null}
+          ) : (
+            <p className="mt-7 text-[0.9375rem] text-fg-muted">
+              Стоимость — по смете после бесплатного замера: зависит от объёма и состава работ.
+            </p>
+          )}
         </Reveal>
       </Section>
 
@@ -158,43 +196,81 @@ export default async function RemontServicePage({ params }: PageProps) {
                 <h3 className="display-md">Зачем это нужно</h3>
               </div>
               <p className="mt-4 text-[0.9375rem] text-fg-muted">{service.why}</p>
-              {rate ? (
-                <p className="mt-5 border-t border-border pt-4 text-sm text-fg-subtle">
-                  Норма выработки —{' '}
-                  <span className="tabular text-fg">
-                    {rate.m2PerDay} м² в день
-                  </span>
-                  {rate.dryingDays > 0 ? (
-                    <>
-                      {' '}
-                      плюс{' '}
-                      {pluralize(rate.dryingDays, 'день', 'дня', 'дней')} технологической паузы на
-                      сушку
-                    </>
-                  ) : null}
-                  . По этой норме считается срок в калькуляторе.
-                </p>
-              ) : null}
             </Card>
           </Reveal>
         </div>
       </Section>
 
-      <Section id="raschet">
+      {service.pricing === 'walls' ? (
+        <Section id="tarify" compact>
+          <Reveal>
+            <SectionHead
+              eyebrow="Тарифы"
+              title="Три тарифа на стены"
+              lead="Цена за квадратный метр фиксированная, состав накопительный: каждый следующий тариф включает предыдущий."
+            />
+          </Reveal>
+          <Reveal delay={80} className="mt-8">
+            <TariffCards tariffs={WALL_TARIFFS} highlight={service.initialTariff} />
+          </Reveal>
+        </Section>
+      ) : null}
+
+      {service.pricing === 'slopes' ? (
+        <Section id="tarify" compact>
+          <Reveal>
+            <SectionHead
+              eyebrow="Тарифы"
+              title="Три тарифа за погонный метр"
+              lead="Периметр проёма без низа: у окна и двери — две вертикали и верх."
+            />
+          </Reveal>
+          <Reveal delay={80} className="mt-8">
+            <SlopeTariffCards tariffs={SLOPE_TARIFFS} />
+          </Reveal>
+          <Reveal delay={140} className="mt-10">
+            <SectionHead eyebrow="Этапы" title="Как делаем откосы" />
+          </Reveal>
+          <Reveal delay={180} className="mt-6">
+            <SlopeStages />
+          </Reveal>
+        </Section>
+      ) : null}
+
+      {service.pricing === 'extras' ? (
+        <Section id="prays" compact>
+          <Reveal>
+            <SectionHead
+              eyebrow="Прайс"
+              title="Стоимость по строкам"
+              lead="Считается по факту замера: за квадратный метр, штуку или выезд — как указано в строке."
+            />
+          </Reveal>
+          <Reveal delay={80} className="mt-8">
+            <ExtraWorksTable
+              works={EXTRA_WORKS}
+              ids={service.extraIds}
+              caption={`${service.title}: стоимость работ`}
+            />
+          </Reveal>
+        </Section>
+      ) : null}
+
+      <Section id="raschet" tone={service.pricing === 'estimate' ? 'base' : 'deep'}>
         <Reveal>
           <SectionHead
             eyebrow="Расчёт"
             title={`${service.title}: сколько это будет стоить`}
-            lead="Работа уже отмечена — добавьте комнаты и получите площадь стен, вилку стоимости и срок."
+            lead="Добавьте комнаты и выберите тариф — получите площадь стен, стоимость по прайсу, срок и гарантию."
           />
         </Reveal>
         <Reveal delay={80} className="mt-8">
-          <RemontCalculator phone={REMONT_PHONE} initialWorks={initialWorks} />
+          <RemontCalculator phone={REMONT_PHONE} initialTariff={service.initialTariff} />
         </Reveal>
       </Section>
 
       {service.faq.length > 0 ? (
-        <Section tone="deep" compact>
+        <Section compact>
           <div className="grid gap-8 lg:grid-cols-[1fr_1.4fr] lg:gap-14">
             <Reveal>
               <SectionHead eyebrow="Вопросы" title={`${service.title}: что спрашивают`} />
@@ -212,13 +288,13 @@ export default async function RemontServicePage({ params }: PageProps) {
         </Section>
       ) : null}
 
-      <Section id="zayavka" compact={service.faq.length > 0}>
+      <Section id="zayavka" tone="deep" compact={service.faq.length > 0}>
         <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:gap-14">
           <Reveal>
             <SectionHead
               eyebrow="Заявка"
               title="Записаться на замер"
-              lead="Приедем, измерим стены и посчитаем точно. Замер бесплатный, смета фиксируется договором."
+              lead="Приедем, измерим и посчитаем точно. Замер бесплатный, смета фиксируется договором."
             />
           </Reveal>
           <Reveal delay={80}>
@@ -231,7 +307,6 @@ export default async function RemontServicePage({ params }: PageProps) {
           </Reveal>
         </div>
       </Section>
-
     </>
   );
 }

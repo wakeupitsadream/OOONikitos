@@ -1,11 +1,15 @@
 import type { Contacts } from '@/content/types';
 
-/** Контакты «Бриллиант Ремонт». Телефон и MAX — с визитки. */
+/**
+ * Контакты «Бриллиант Ремонт». Телефон и MAX — с визитки,
+ * почта — с листовки «Откосы на окна и двери» (сентябрь 2026).
+ */
 export const REMONT_CONTACTS: Contacts = {
   phones: [{ value: '+79510377008' }],
-  email: null, // TODO_OWNER: почта для дублей заявок
+  email: 'info@brilliant-remont.ru',
   messengers: [
     { kind: 'max', url: 'https://web.max.ru/-72942117352109', label: 'Написать в MAX' },
+    // TODO_OWNER: на листовке есть QR «для связи в WhatsApp» — прислать ссылку
   ],
   address: null, // TODO_OWNER: фактический офис, если показываем
   hours: null, // TODO_OWNER: часы работы

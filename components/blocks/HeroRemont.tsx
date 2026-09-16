@@ -6,20 +6,20 @@ import { Container } from '@/components/ui/Container';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { LogoRemont } from '@/components/brand/LogoRemont';
-import { IconLevel, IconRoller, IconTrowel } from '@/components/icons';
+import { IconLevel, IconRoller, IconRuler, IconShield, IconTrowel } from '@/components/icons';
 
 /**
  * Hero «Бриллиант Ремонт»: чёрный фон, золотая «трещина»-молния с оборота
  * визитки и мраморная панель-визитка справа. Ни одной цифры, которой нет
  * в подтверждённых данных: факты — только то, что напечатано на визитке
- * и закреплено договором.
+ * и листовках владельца и закреплено договором.
  */
 
-/** Три обещания с оборота визитки — дословно. */
+/** Три обещания с нижней строки листовки «Откосы» — дословно. */
 const PROMISES = [
-  { icon: IconTrowel, title: 'Ровные стены под обои', text: 'Плоскость по маякам, проверка правилом' },
-  { icon: IconLevel, title: 'Понятные сроки', text: 'Срок считаем от площади и состава работ' },
-  { icon: IconRoller, title: 'Фиксированная смета', text: 'Стоимость закрепляем договором до старта' },
+  { icon: IconRuler, title: 'Точная смета до начала работ', text: 'Бесплатный замер, расчёт по факту' },
+  { icon: IconLevel, title: 'Фиксируем стоимость в договоре', text: 'Три тарифа с ценой за м²' },
+  { icon: IconShield, title: 'Гарантия до 3 лет', text: 'Прописана в договоре, не на словах' },
 ];
 
 /** Тонкая ломаная «трещина» по диагонали — графика с оборота визитки. */
@@ -79,7 +79,7 @@ export function HeroRemont() {
               className="display-xl rise mt-6"
               style={{ '--rise-delay': '60ms' } as React.CSSProperties}
             >
-              Штукатурка и отделка стен в Оренбурге
+              Ремонт квартир и домов под ключ в Оренбурге
             </h1>
 
             <p
@@ -93,8 +93,9 @@ export function HeroRemont() {
               className="lead rise mt-5 max-w-xl"
               style={{ '--rise-delay': '140ms' } as React.CSSProperties}
             >
-              Идеальная поверхность под обои и покраску. Считаем площадь стен честно — по
-              периметру и высоте, за вычетом окон и дверей.
+              От демонтажа до финальной уборки. Стены — по трём тарифам с фиксированной
+              ценой за м², откосы — за погонный метр. Площадь считаем честно: по периметру и
+              высоте, за вычетом окон и дверей.
             </p>
 
             <div
