@@ -5,7 +5,7 @@
 
 ## Ветка и деплой
 - Работать в ветке `claude/belye-niti-websites-w42jwl`, коммитить по фазам §13 плана, пушить после каждой фазы — Vercel делает preview-деплой на каждый push.
-- В `main` не пушить: production = `main`, PR только после приёмки владельцем.
+- Production = `main`. В `main` вливаем только по явной команде Максима («деплой в продакшн»); первый такой деплой — 16.09.2026, fast-forward из рабочей ветки. Между командами работа идёт в ветке и смотрится на preview.
 - Vercel-проект `belye-niti` в команде `maxaiassistants-6238s-projects`. Секреты — только в Environment Variables Vercel, никогда в репо, коммитах и чате. Список env — §11 плана и `docs/CONTENT-INPUTS.md`.
 
 ## Команды
